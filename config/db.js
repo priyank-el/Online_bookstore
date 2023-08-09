@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-// database connection method 
+// database connection 
 mongoose.connect(process.env.CONNECTION_URL)
     .then(() => {
         console.log('databse connection established...')
