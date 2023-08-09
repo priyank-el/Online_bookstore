@@ -7,6 +7,8 @@ const ORDER = require('../models/orderSchema')
 const RATING = require('../models/ratingSchema')
 const PAYMENT = require('../models/paymentSchema')
 
+
+// This is a side fetures
 const bcrypt = require('bcrypt')
 const fs = require('fs')
 const nodemailer = require('nodemailer')
