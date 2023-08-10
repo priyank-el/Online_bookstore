@@ -25,7 +25,8 @@ const userSchema = new mongoose.Schema({
     image: {
         type: String,
         get: function (image) {
-            return `http://localhost:4000/images/${image}`
+            let modifiedImage = image ? `http://localhost:4000/images/${image}` : null
+            return modifiedImage
         }
     }
 },

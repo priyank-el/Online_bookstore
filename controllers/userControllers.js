@@ -217,15 +217,15 @@ exports.findAllRecommandation =
 exports.getAllGenres =
     async (req, res) => {
         try {
-            const admin = req.user
+            const user = req.user
 
-            if (!admin) {
+            if (!user) {
                 const error = new Error('Admin not login...')
                 throw error
             }
 
             const allGenre = await GENRE.aggregate([
-                { $match: { status: 'Available' || 1 } }
+                { $match: { status: 1 } }
             ])
                 .project({
                     '_id': 1,
