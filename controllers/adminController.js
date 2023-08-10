@@ -336,18 +336,27 @@ exports.getaAllUsers =
             const admin = req.user
             const page = req.query.page ? req.query.page : 1
             const actualpage = parseInt(page) - 1
-            const record = actualpage * 2
+            const record = actualpage * 3
 
             if (!admin) {
                 const error = new Error('Admin not found...')
                 throw error
             }
 
+            const searchData = req.query.search ? {
+                $match: {
+                    $or: [
+                        { fullname: req.query.search },
+                        { email: req.query.search }
+                    ]
+                }
+            } : { $match: {} }
+
             const allUsers = await USER
-                .aggregate()
+                .aggregate([ searchData ])
                 .skip(record)
-                .limit(2)
-                .project({ otpVerification: 0, createdAt: 0, password: 0, token: 0, updatedAt: 0, otp: 0 })
+                .limit(3)
+                .project({ otpVerification: 0, createdAt: 0, password: 0, token: 0, updatedAt: 0, otp: 0 , __v: 0 })
 
             return res.json({
                 success: true,
