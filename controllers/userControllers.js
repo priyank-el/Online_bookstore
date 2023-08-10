@@ -889,6 +889,7 @@ exports.makeOrder =
 
             const detail = await ORDER.aggregate([
                 { $match: { userId: user._id } },
+                { $match: { paymentStatus: 'Pending' } },
                 {
                     $lookup: {
                         from: 'books',
@@ -1041,27 +1042,27 @@ exports.viewOrderDetail =
             let totalPrice = 0
 
             for (let i = 0; i < data.length; i++) {
-
-                for (let j = 0; j < data[i].about_book.length; j++) {
-                    const id = data[i].about_book[j].bookId
-
-                    const book = await BOOK.findById(id)
-                    console.log(book)
-
-                    const price = book.price
-                    const money = price.split('$')[0]
-                    const p = parseInt(money) * data[i].about_book[j].quntity
-
-                    totalPrice += p
+                if(data[i].paymentStatus == 'Pending'){
+                    for (let j = 0; j < data[i].about_book.length; j++) {
+                        const id = data[i].about_book[j].bookId
+    
+                        const book = await BOOK.findById(id)
+                        console.log(book)
+    
+                        const price = book.price
+                        const money = price.split('$')[0]
+                        const p = parseInt(money) * data[i].about_book[j].quntity
+    
+                        totalPrice += p
+                    }
                 }
-
             }
 
             return res.json({
                 success: true,
                 data,
                 message: "Data found successfully...",
-                totalPrice: `${totalPrice}$`
+                payment: `${totalPrice}$`
             })
         } catch (error) {
             return res.json({
