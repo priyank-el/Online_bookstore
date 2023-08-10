@@ -13,8 +13,7 @@ const bcrypt = require('bcrypt')
 exports.registerAdmin =
     async (req, res) => {
         try {
-            const email = req.body.email
-            const password = req.body.password
+            const { email , password } = req.body
 
             const bcryptedPass = await bcrypt.hash(password, 10)
 
@@ -92,12 +91,10 @@ exports.createBook =
     async (req, res) => {
         try {
             const admin = req.user
-            const title = req.body.title
-            const author = req.body.author
-            const price = req.body.price
-            const genre = req.body.genre
             const image = req.file.filename
-            const numbersOfBooks = req.body.numbersOfBooks
+            
+            const { title , author , price , genre ,numbersOfBooks }  = req.body
+
             const status = numbersOfBooks > 0 ? 'Available' : 'Unavailable'
 
             if (!admin) {
@@ -219,11 +216,8 @@ exports.updateBookById =
         try {
             const admin = req.user
             const id = req.params.id
-            const title = req.body.title
-            const author = req.body.author
-            const genre = req.body.genre
-            const price = req.body.price
-            const numbersOfBooks = req.body.numbersOfBooks
+
+            const { title , author , genre , price , numbersOfBooks } = req.body
 
             const status = numbersOfBooks > 0 ? 'Available' : 'Unavailable'
 
@@ -343,12 +337,6 @@ exports.getaAllUsers =
                 .skip(record)
                 .limit(2)
                 .project({ otpVerification: 0, createdAt: 0, password: 0, token: 0, updatedAt: 0, otp: 0 })
-
-            // const users = allUsers.map(doc => USER.hydrate({
-            //     Id: doc._id,
-            //     email: doc.email,
-            //     image: doc.image
-            // }))
 
             return res.json({
                 success: true,
