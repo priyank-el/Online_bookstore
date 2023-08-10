@@ -148,18 +148,29 @@ exports.findAllBooks =
     async (req, res) => {
         try {
             const admin = req.user
-            const page = req.query.page ? req.query.page : 1
-            const actualpage = parseInt(page) - 1
-            const record = actualpage * 2
-
+            
             if (!admin) {
                 const error = new Error('Admin not log in ...')
                 throw error
             }
 
-            const book = await BOOK.aggregate()
+            const page = req.query.page ? req.query.page : 1
+            const actualpage = parseInt(page) - 1
+            const record = actualpage * 3
+
+            const searchData = req.query.search ? {
+                $match: {
+                    $or: [
+                        { title: req.query.search },
+                        { author: req.query.search },
+                        { 'genre.genre': req.query.search }
+                    ]
+                }
+            } : { $match: {} }
+
+            const book = await BOOK.aggregate([ searchData ])
                 .skip(record)
-                .limit(2)
+                .limit(3)
                 .project({ createdAt: 0, updatedAt: 0, __v: 0 })
 
             if (!book) {
@@ -169,7 +180,7 @@ exports.findAllBooks =
 
             return res.status(200).json({
                 success: true,
-                message: "All users found...",
+                message: "All books found...",
                 book
             })
         } catch (error) {
