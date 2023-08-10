@@ -1024,25 +1024,11 @@ exports.viewOrderDetail =
                 throw error
             }
 
-            // const data = await ORDER.findOne({ userId: user._id })
             const data = await ORDER.aggregate([
-                { $match: { userId: user._id } },
-                {
-                    $lookup: {
-                        from: 'books',
-                        localField: 'bookId',
-                        foreignField: '_id',
-                        as: 'book_details'
-                    }
-                }
+                { $match: { userId: user._id } }
             ]).project({
                 '_id': 0,
-                '__v': 0,
-                'book_details.__v': 0,
-                'book_details.createdAt': 0,
-                'book_details.updatedAt': 0,
-                'book_details.status': 0,
-                'book_details.numbersOfBooks': 0
+                '__v': 0
             })
 
             if (!data) {
@@ -1050,19 +1036,25 @@ exports.viewOrderDetail =
                 throw error
             }
 
+            console.log(data)
+
             let totalPrice = 0
 
-            for (let i = 0; i < data[0].bookId.length; i++) {
-                const id = data[0].bookId[i]
+            for (let i = 0; i < data.length; i++) {
 
-                const book = await BOOK.findById(id)
-                console.log(book)
+                for (let j = 0; j < data[i].about_book.length; j++) {
+                    const id = data[i].about_book[j].bookId
 
-                const price = book.price
-                const money = price.split('$')[0]
-                const p = parseInt(money) * data[0].quntity[i]
+                    const book = await BOOK.findById(id)
+                    console.log(book)
 
-                totalPrice += p
+                    const price = book.price
+                    const money = price.split('$')[0]
+                    const p = parseInt(money) * data[i].about_book[j].quntity
+
+                    totalPrice += p
+                }
+
             }
 
             return res.json({
