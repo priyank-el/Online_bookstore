@@ -201,10 +201,12 @@ exports.findAllRecommandation =
                 throw error
             }
 
+            const message = allRecommandation.length > 0 ? 'All available recommandation fetched...' : 'right now no recommandation found..'
+
             return res.json({
                 success: true,
                 AllGenre: allRecommandation[0].recommandId,
-                message: 'All recommandation found...'
+                message
             })
         } catch (error) {
             return res.json({
