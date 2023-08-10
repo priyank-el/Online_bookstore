@@ -163,7 +163,7 @@ exports.findAllBooks =
                     $or: [
                         { title: req.query.search },
                         { author: req.query.search },
-                        { 'genre.genre': req.query.search }
+                        { status: req.query.search }
                     ]
                 }
             } : { $match: {} }
