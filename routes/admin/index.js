@@ -56,7 +56,6 @@ router.get('/find-book/:id', findBookById)
 router.put('/update-book/:id', updateBookById)
 router.delete('/delete-book/:id', deleteBookById)
 router.post('/genre-status', bookGenreStatus)
-// router.get('/all-genre', getAllGenres)
 
 // ========================================= USERS API ========================================= //
 router.get('/all-users', getaAllUsers)
