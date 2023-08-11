@@ -27,7 +27,7 @@ exports.registerAdmin = async (req, res) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      error: "admin not created successfully...",
+      error: "Oops.." + error.message
     })
   }
 }
@@ -51,9 +51,7 @@ exports.createBookGenre = async (req, res) => {
       throw error
     }
 
-    const createGenre = await GENRE.create({
-      genre,
-    })
+    const createGenre = await GENRE.create({ genre })
 
     return res.json({
       success: true,
@@ -62,7 +60,7 @@ exports.createBookGenre = async (req, res) => {
   } catch (error) {
     return res.json({
       success: false,
-      message: "Book genre not created...",
+      message: "Oops.." + error.message
     })
   }
 }
@@ -101,7 +99,7 @@ exports.createBook = async (req, res) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Book not created by user..",
+      message: "Oops.." + error.message
     })
   }
 }
@@ -137,7 +135,7 @@ exports.findAllBooks = async (req, res) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Book not found..",
+      message: "Oops.." + error.message
     })
   }
 }
@@ -156,7 +154,7 @@ exports.findBookById = async (req, res) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Book not found..",
+      message: "Oops.." + error.message
     })
   }
 }
@@ -184,7 +182,7 @@ exports.updateBookById = async (req, res) => {
   } catch (error) {
     return res.json({
       success: false,
-      message: "Book not updated..",
+      message: "Oops.." + error.message
     })
   }
 }
@@ -202,7 +200,7 @@ exports.deleteBookById = async (req, res) => {
   } catch (error) {
     return res.json({
       success: false,
-      message: 'Book not  deleted..'
+      message: "Oops.." + error.message
     })
   }
 }
@@ -224,7 +222,7 @@ exports.bookGenreStatus = async (req, res) => {
   } catch (error) {
     return res.json({
       success: false,
-      messsage: "Filed to change status of book genres..",
+      messsage: "Oops.." + error.message,
     })
   }
 }
@@ -266,7 +264,7 @@ exports.getaAllUsers = async (req, res) => {
   } catch (error) {
     return res.json({
       success: false,
-      message: "can not found all users data..",
+      message: "Oops.." + error.message
     })
   }
 }
@@ -275,29 +273,18 @@ exports.getaAllUsers = async (req, res) => {
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const page = req.query.page ? req.query.page : 1;
-    const actualpage = parseInt(page) - 1;
-    const record = actualpage * 2;
-
-    const allOrders = await ORDER.find().count();
-    const totalPage = parseInt(allOrders / 2);
+    const page = req.query.page ? req.query.page : 1
+    const actualpage = parseInt(page) - 1
+    const record = actualpage * 2
 
     const ordersList = await ORDER.aggregate()
       .skip(record)
       .limit(2)
-      .project({ createdAt: 0, updatedAt: 0, __v: 0 });
-
-    if (!ordersList) {
-      const error = new Error("All orders not found...");
-      throw error;
-    }
-
-    const orders = allOrders.length > 0 ? allOrders : "Not any pending oredrs available...";
+      .project({ createdAt: 0, updatedAt: 0, __v: 0 })
 
     return res.json({
       success: true,
-      data: orders,
-      totalPage,
+      data: ordersList
     })
   } catch (error) {
     return res.json({
@@ -314,9 +301,6 @@ exports.getAllPaymentList = async (req, res) => {
     const page = req.query.page ? req.query.page : 1;
     const actualpage = parseInt(page) - 1;
     const record = actualpage * 2;
-
-    const allPayment = await PAYMENT.find().count();
-    const totalPage = parseInt(allPayment / 2);
 
     const paymentList = await PAYMENT.aggregate([
       {
@@ -347,13 +331,12 @@ exports.getAllPaymentList = async (req, res) => {
 
     return res.json({
       success: true,
-      list: paymentList,
-      totalPage,
+      list: paymentList
     })
   } catch (error) {
     return res.json({
       success: false,
-      message: 'Some error occurs..',
+      message: 'Some error occurs..' + error.message,
     })
   }
 }
