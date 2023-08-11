@@ -62,9 +62,11 @@ router.post('/genre-status', adminAuth , validators('updateGenreStatus') , bookG
 // ========================================= USERS API ========================================= //
 router.get('/all-users', adminAuth ,getaAllUsers)
 
+// ========================================= ORDER API ========================================= //
 
 router.get('/all-orders', adminAuth ,getAllOrders)
 
+// ========================================= PAYMENT API ========================================= //
 
 router.get('/payment-list', adminAuth ,getAllPaymentList)
 module.exports = router
