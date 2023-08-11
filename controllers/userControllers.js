@@ -173,11 +173,6 @@ exports.findAllRecommandation =
         try {
             const user = req.user
 
-            if (!user) {
-                const error = new Error('User not found...')
-                throw error
-            }
-
             const allRecommandation = await RECOMMAND.aggregate([
                 { $match: { userId: user.id } },
                 {
@@ -221,11 +216,6 @@ exports.getAllGenres =
         try {
             const user = req.user
 
-            if (!user) {
-                const error = new Error('Admin not login...')
-                throw error
-            }
-
             const allGenre = await GENRE.aggregate([
                 { $match: { status: 1 } }
             ])
@@ -233,11 +223,6 @@ exports.getAllGenres =
                     '_id': 1,
                     'genre': 1
                 })
-
-            if (!allGenre) {
-                const error = new Error('All genere not found...')
-                throw error
-            }
 
             return res.json({
                 success: true,
@@ -274,14 +259,7 @@ exports.recommandBooks =
                 }
             }
 
-            if (!user) {
-                const error = new Error('User not found')
-                throw error
-            }
-
             const isAvailable = await RECOMMAND.findOne({ userId: user._id })
-
-            console.log(isAvailable)
 
             if (isAvailable) {
                 let array = []
@@ -325,11 +303,6 @@ exports.updateRecommandation =
             const user = req.user
             const ids = req.body.ids
 
-            if (!user) {
-                const error = new Error('User not found...')
-                throw error
-            }
-
             const findRecommandation = await RECOMMAND.findOne({ userId: user._id })
 
             for (let i = 0; i < findRecommandation.recommandId.length; i++) {
@@ -366,11 +339,6 @@ exports.updateRecommandation =
 exports.findAllAvailableBooks =
     async (req, res) => {
         try {
-            if (!req.user) {
-                const error = new Error('User not found...')
-                throw error
-            }
-
             const page = req.query.page ? req.query.page : 1
             const actualpage = parseInt(page) - 1
             const record = actualpage * 5
@@ -474,11 +442,6 @@ exports.findAllAvailableBooks =
                     'avg': '$$ratings_and_reviews.ratings' / 2,
                 })
 
-            if (!books) {
-                const error = new Error('users not found...')
-                throw error
-            }
-
             for (let i = 0; i < books.length; i++) {
                 if (books[i].rating_and_reviews.length == 0) {
                     books[i].rating_and_reviews = null
@@ -536,15 +499,9 @@ exports.findAllAvailableBooks =
 exports.addToCart =
     async (req, res) => {
         try {
-            if (!req.user) {
-                const error = new Error('User not found...')
-                throw error
-            }
+            const {bookId , quntity} = req.body
 
-            const bookId = req.body.bookId
-            const quntityOfBooks = req.body.quntity
-            console.log(quntityOfBooks)
-            if (quntityOfBooks < 0) {
+            if (quntity < 0) {
                 const error = new Error('Books quntity must greater then 0')
                 throw error
             }
@@ -552,17 +509,14 @@ exports.addToCart =
             const book = await BOOK.findById(bookId)
 
             if (book.numbersOfBooks == 0) {
-
                 const updateBook = await BOOK.findByIdAndUpdate(bookId, {
                     status: 'Unavailable'
                 })
-
                 const error = new Error('Sorry, But this book is Out of stock...')
                 throw error
             }
 
-            if (book.numbersOfBooks < quntityOfBooks) {
-
+            if (book.numbersOfBooks < quntity) {
                 const error = new Error('book not add to cart bcz of low quntity..')
                 throw error
             }
@@ -574,18 +528,13 @@ exports.addToCart =
 
             const userCart = findOldCart.length > 0
                 ? await CART.findByIdAndUpdate(findOldCart[0]._id, {
-                    quntity: findOldCart[0].quntity + quntityOfBooks
+                    quntity: findOldCart[0].quntity + quntity
                 })
                 : await CART.create({
                     bookId,
                     userId: req.user.id,
-                    quntity: quntityOfBooks
+                    quntity
                 })
-
-            if (!userCart) {
-                const error = new Error('Cart not created...')
-                throw error
-            }
 
             return res.json({
                 success: true,
@@ -604,15 +553,10 @@ exports.getCartDetailByLoginUser =
         try {
             const user = req.user
 
-            if (!user) {
-                const error = new Error('user not found...')
-                throw error
-            }
-
             const match = req.user ? { $match: { userId: req.user._id } } : { $match: {} }
 
             const cartDetail = await CART.aggregate(
-                [match,
+                [ match,
                     {
                         $lookup: {
                             from: 'books',
@@ -642,15 +586,13 @@ exports.getCartDetailByLoginUser =
                 })
             let totalPrice = 0;
             const price = cartDetail.map((book) => {
-                console.log(book)
+                
                 const p = book.price
                 const original = p.split('$')[0]
                 const money = parseInt(original) * book.quntity
 
                 totalPrice += money
             })
-
-            // console.log('total-price', `${totalPrice}$`)
 
             return res.json({
                 success: true,
@@ -669,11 +611,6 @@ exports.removeToCart =
     async (req, res) => {
         try {
             const user = req.user
-
-            if (!user) {
-                const error = new Error('User not found do login...')
-                throw error
-            }
 
             const bookId = req.body.bookId
             const quntity = req.body.quntity
@@ -701,9 +638,6 @@ exports.removeToCart =
                     'detail._id': 0
                 })
 
-            console.log(book)
-            console.log(book[0].quntity)
-            console.log(quntity)
             if (book[0].quntity < quntity) {
                 const error = new Error('Input Quntity invalid...')
                 throw error
@@ -713,23 +647,13 @@ exports.removeToCart =
                 quntity: book[0].quntity - quntity
             })
 
-            if (!updateCart) {
-                const error = new Error('Cart not updated..')
-                throw error
-            }
-
             const record = await CART.findById(book[0]._id)
-
-            console.log(record)
-
 
             if (record.quntity == 0) {
                 const deleteRecord = await CART.findByIdAndDelete(book[0]._id)
             }
 
-            console.log(bookId)
             const findBook = await BOOK.findById(bookId)
-            console.log(findBook)
 
             const bookUpdate = findBook.numbersOfBooks <= 0
                 ? await BOOK.findByIdAndUpdate(bookId, {
@@ -739,11 +663,6 @@ exports.removeToCart =
                 : await BOOK.findByIdAndUpdate(bookId, {
                     numbersOfBooks: book[0].detail.numbersOfBooks + quntity,
                 })
-
-            if (!bookUpdate) {
-                const error = new Error('Book not updated...')
-                throw error
-            }
 
             return res.json({
                 success: true,
@@ -789,11 +708,6 @@ exports.updateProfile =
                 image
             })
 
-            if (!updateUser) {
-                const error = new Error('User not updated...')
-                throw error
-            }
-
             return res.json({
                 success: true,
                 message: 'User profile updated successfully...'
@@ -812,17 +726,7 @@ exports.viewProfile =
         try {
             const user = req.user
 
-            if (!user) {
-                const error = new Error('User not found...')
-                throw error
-            }
-
             const viewUser = await USER.findById(user._id, { fullname: 1, email: 1, image: 1 })
-
-            if (!viewUser) {
-                const error = new Error('User not found pls do login first...')
-                throw error
-            }
 
             return res.json({
                 success: true,
@@ -841,11 +745,6 @@ exports.makeOrder =
         try {
             const user = req.user
 
-            if (!user) {
-                const error = new Error('User not found...')
-                throw error
-            }
-
             const cartdata = await CART.aggregate([
                 { $match: { userId: user._id } }
             ])
@@ -855,15 +754,14 @@ exports.makeOrder =
                 throw error
             }
 
-            const b = cartdata.map((data) => {
-                const book = data.bookId
-                return book
+            const b = cartdata.map((e) => {
+                return e.bookId
             })
 
             const q = cartdata.map((e) => {
-                console.log(e.quntity)
                 return e.quntity
             })
+
             let array = []
             for (let i = 0; i < b.length; i++) {
                 for (let j = 0; j < q.length; j++) {
@@ -881,11 +779,6 @@ exports.makeOrder =
                 about_book: array,
                 userId: user._id,
             })
-
-            if (!order) {
-                const error = new Error('Order not sended...')
-                throw error
-            }
 
             const detail = await ORDER.aggregate([
                 { $match: { userId: user._id } },
@@ -954,13 +847,6 @@ exports.makeOrder =
                 'total_amount': { $sum: '$about_book.total_price_Of_book' },
             })
 
-            console.log(detail)
-
-            if (!detail) {
-                const error = new Error('Order not found...')
-                throw error
-            }
-
             const findUser = await ORDER.findOne({ userId: user._id })
 
             if (!findUser) {
@@ -976,6 +862,7 @@ exports.makeOrder =
             const number = parseInt(bookFind.numbersOfBooks)
             const quntity = parseInt(dataCart[0].quntity)
             const result = number - quntity
+
             if (number < quntity) {
                 const error = new Error('not valid..')
                 throw error
@@ -1020,24 +907,12 @@ exports.viewOrderDetail =
         try {
             const user = req.user
 
-            if (!user) {
-                const error = new Error('User not found...')
-                throw error
-            }
-
             const data = await ORDER.aggregate([
                 { $match: { userId: user._id } }
             ]).project({
                 '_id': 0,
                 '__v': 0
             })
-
-            if (!data) {
-                const error = new Error('User data not found...')
-                throw error
-            }
-
-            console.log(data)
 
             let totalPrice = 0
 
@@ -1077,11 +952,6 @@ exports.ratingBooks =
         try {
             const user = req.user
 
-            if (!user) {
-                const error = new Error('User not found...')
-                throw error
-            }
-
             const book = req.body.book
             const rating = req.body.rating ? req.body.rating : 0
             const review = req.body.review ? req.body.review : ''
@@ -1101,9 +971,7 @@ exports.ratingBooks =
                 { $match: { $expr: { $eq: ['$userId', { $toObjectId: user._id }] } } },
                 { $match: { $expr: { $eq: ['$bookId', { $toObjectId: book }] } } },
             ])
-            console.log(user._id)
-            console.log(userOrderModel)
-
+            
             if (findBook.length < 0) {
                 const error = new Error('You only give one rate of each book...')
                 throw error
@@ -1150,11 +1018,6 @@ exports.updateratingsByUser =
 
             const rating = parseInt(rate)
 
-            if (!user) {
-                const error = new Error('User not login...')
-                throw error
-            }
-
             if (rating > 5) {
                 const error = new Error('Ratings must in between 0-5')
                 throw error
@@ -1170,20 +1033,10 @@ exports.updateratingsByUser =
                 { $match: { $expr: { $eq: ['$bookId', { $toObjectId: book }] } } },
             ])
 
-            if (!findBook) {
-                const error = new Error('Book not avvailable...')
-                throw error
-            }
-
             const updateRating = await RATING.findOneAndUpdate({ bookId: findBook[0].bookId }, {
                 rating,
                 review
             })
-
-            if (!updateRating) {
-                const error = new Error('Book rating not updated..')
-                throw error
-            }
 
             return res.json({
                 success: true,
@@ -1206,11 +1059,6 @@ exports.viewratingByBook =
             const page = req.query.page ? req.query.page : 1
             const actualpage = parseInt(page) - 1
             const record = actualpage * 3
-
-            if (!user) {
-                const error = new Error('User not found...')
-                throw error
-            }
 
             const bookData = await RATING.aggregate([
                 { $match: { $expr: { $eq: ['$bookId', { $toObjectId: book }] } } },
@@ -1239,11 +1087,6 @@ exports.viewratingByBook =
                 .skip(record)
                 .limit(3)
 
-            if (!bookData) {
-                const error = new Error('Book not found...')
-                throw error
-            }
-
             return res.json({
                 success: true,
                 message: 'Here are all rating all books which you enterd...',
@@ -1263,16 +1106,12 @@ exports.payment =
             const user = req.user
             const orderId = req.body.orderId
 
-            if (!user) {
-                const error = new Error('User not found...')
-                throw error
-            }
             const orderDetail = await ORDER.aggregate([
                 { $match: { $expr: { $eq: ['$userId', { $toObjectId: user._id }] } } },
             ])
-            console.log('order is ===', orderDetail)
-
+            
             const findOrder = await ORDER.findById(orderId)
+
             if (findOrder) {
                 let totalPrice = 0
 
@@ -1280,7 +1119,6 @@ exports.payment =
                     const id = findOrder.about_book[i].bookId
 
                     const book = await BOOK.findById(id)
-                    console.log(book)
 
                     const price = book.price
                     const money = price.split('$')[0]
@@ -1298,19 +1136,9 @@ exports.payment =
                         totalPrice: `${totalPrice}$`
                     })
 
-                if (!payment) {
-                    const error = new Error('Payment not done...')
-                    throw error
-                }
-
                 const updateOrderStatus = await ORDER.findByIdAndUpdate(findOrder._id, {
                     paymentStatus: 'Done'
                 })
-
-                if (!updateOrderStatus) {
-                    const error = new Error('Order status not updated..')
-                    throw error
-                }
             }
             return res.json({
                 success: true,

@@ -3,30 +3,31 @@ const { createUser, otpVerification, userLogin, findAllAvailableBooks, addToCart
 const router = express.Router()
 
 const jwtAuth = require('../../middleware/jwtAuth')
+const userAuth = require('../../middleware/userAuth')
 
 router.post('/create', createUser)
 router.post('/otp', otpVerification)
 router.post('/login', userLogin)
-router.get('/all-books', jwtAuth, findAllAvailableBooks)
+router.get('/all-books', jwtAuth , userAuth , findAllAvailableBooks)
 
-router.post('/add-cart', jwtAuth, addToCart)
-router.post('/remove-cart', jwtAuth, removeToCart)
-router.get('/show-cart', jwtAuth, getCartDetailByLoginUser)
+router.post('/add-cart', jwtAuth, userAuth, addToCart)
+router.post('/remove-cart', jwtAuth, userAuth, removeToCart)
+router.get('/show-cart', jwtAuth, userAuth, getCartDetailByLoginUser)
 
-router.put('/update', jwtAuth, updateProfile)
-router.get('/profile', jwtAuth, viewProfile)
-router.get('/order', jwtAuth, makeOrder)
-router.get('/view-order', jwtAuth, viewOrderDetail)
-router.post('/payment', jwtAuth, payment)
-router.post('/view-rating', jwtAuth, viewratingByBook)
-router.post('/recommand', jwtAuth, recommandBooks)
+router.put('/update', jwtAuth, userAuth, updateProfile)
+router.get('/profile', jwtAuth, userAuth, viewProfile)
+router.get('/order', jwtAuth, userAuth, makeOrder)
+router.get('/view-order', jwtAuth, userAuth, viewOrderDetail)
+router.post('/payment', jwtAuth, userAuth, payment)
+router.post('/view-rating', jwtAuth, userAuth, viewratingByBook)
+router.post('/recommand', jwtAuth, userAuth, recommandBooks)
 
-router.post('/update-recommandation', jwtAuth, updateRecommandation)
-router.get('/all-recommandation', jwtAuth, findAllRecommandation)
-router.get('/all-genre', jwtAuth, getAllGenres)
+router.post('/update-recommandation', jwtAuth, userAuth, updateRecommandation)
+router.get('/all-recommandation', jwtAuth, userAuth, findAllRecommandation)
+router.get('/all-genre', jwtAuth, userAuth, getAllGenres)
 
-router.post('/rating', jwtAuth, ratingBooks)
+router.post('/rating', jwtAuth, userAuth, ratingBooks)
 
-router.put('/update-rating', jwtAuth, updateratingsByUser)
+router.put('/update-rating', jwtAuth, userAuth, updateratingsByUser)
 
 module.exports = router
