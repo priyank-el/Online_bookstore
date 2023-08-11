@@ -52,10 +52,10 @@ router.post('/login', passport.authenticate('local'), loginAdmin)
 
 // ========================================= BOOKS API ========================================= //
 router.post('/create-book', adminAuth , validators('createBook') ,createBook)
-router.post('/genre', adminAuth ,createBookGenre)
+router.post('/genre', adminAuth , validators('createBookGenre') , createBookGenre)
 router.get('/find-all-books', adminAuth ,findAllBooks)
 router.get('/find-book/:id', adminAuth ,findBookById)
-router.put('/update-book/:id', adminAuth ,updateBookById)
+router.put('/update-book/:id', adminAuth , validators('updateBook') , updateBookById)
 router.delete('/delete-book/:id', adminAuth ,deleteBookById)
 router.post('/genre-status', adminAuth ,bookGenreStatus)
 
