@@ -7,6 +7,8 @@ const bcrypt = require('bcrypt')
 const { registerAdmin, loginAdmin, createBook, findAllBooks, findBookById, updateBookById, deleteBookById, getaAllUsers, createBookGenre, getAllOrders, getAllPaymentList, bookGenreStatus, getAllGenres } = require('../../controllers/adminController')
 const ADMIN = require('../../models/adminSchema')
 
+const adminAuth = require('../../middleware/adminAuth')
+const validators = require('../../utils/validaterequest')
 
 // ====================================== PASSPORT LOCAL STRATEGY ===========================================
 passport.serializeUser(function (user, done) {
@@ -45,24 +47,24 @@ router.use(passport.initialize())
 router.use(passport.session())
 
 
-router.post('/register', registerAdmin)
+router.post('/register', validators('adminRegister') ,registerAdmin)
 router.post('/login', passport.authenticate('local'), loginAdmin)
 
 // ========================================= BOOKS API ========================================= //
-router.post('/create-book', createBook)
-router.post('/genre', createBookGenre)
-router.get('/find-all-books', findAllBooks)
-router.get('/find-book/:id', findBookById)
-router.put('/update-book/:id', updateBookById)
-router.delete('/delete-book/:id', deleteBookById)
-router.post('/genre-status', bookGenreStatus)
+router.post('/create-book', adminAuth , validators('createBook') ,createBook)
+router.post('/genre', adminAuth ,createBookGenre)
+router.get('/find-all-books', adminAuth ,findAllBooks)
+router.get('/find-book/:id', adminAuth ,findBookById)
+router.put('/update-book/:id', adminAuth ,updateBookById)
+router.delete('/delete-book/:id', adminAuth ,deleteBookById)
+router.post('/genre-status', adminAuth ,bookGenreStatus)
 
 // ========================================= USERS API ========================================= //
-router.get('/all-users', getaAllUsers)
+router.get('/all-users', adminAuth ,getaAllUsers)
 
 
-router.get('/all-orders', getAllOrders)
+router.get('/all-orders', adminAuth ,getAllOrders)
 
 
-router.get('/payment-list', getAllPaymentList)
+router.get('/payment-list', adminAuth ,getAllPaymentList)
 module.exports = router

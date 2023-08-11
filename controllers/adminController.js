@@ -89,18 +89,11 @@ exports.createBookGenre =
 
 exports.createBook =
     async (req, res) => {
-        try {
-            const admin = req.user
+        try {   
             const image = req.file.filename
-            
             const { title , author , price , genre ,numbersOfBooks }  = req.body
 
             const status = numbersOfBooks > 0 ? 'Available' : 'Unavailable'
-
-            if (!admin) {
-                const error = new Error('Admin not found...')
-                throw error
-            }
 
             const book = await BOOK.create({
                 title,
@@ -147,13 +140,6 @@ exports.createBook =
 exports.findAllBooks =
     async (req, res) => {
         try {
-            const admin = req.user
-            
-            if (!admin) {
-                const error = new Error('Admin not log in ...')
-                throw error
-            }
-
             const page = req.query.page ? req.query.page : 1
             const actualpage = parseInt(page) - 1
             const record = actualpage * 3
@@ -194,13 +180,7 @@ exports.findAllBooks =
 exports.findBookById =
     async (req, res) => {
         try {
-            const admin = req.user
             const id = req.params.id
-
-            if (!admin) {
-                const error = new Error('Admin not log in ...')
-                throw error
-            }
 
             const book = await BOOK.findById(id)
 
@@ -225,18 +205,11 @@ exports.findBookById =
 exports.updateBookById =
     async (req, res) => {
         try {
-            const admin = req.user
             const id = req.params.id
-
             const { title , author , genre , price , numbersOfBooks } = req.body
 
             const status = numbersOfBooks > 0 ? 'Available' : 'Unavailable'
-
-            if (!admin) {
-                const error = new Error('Admin not found...')
-                throw error
-            }
-
+            
             const book = await BOOK.findByIdAndUpdate(id, {
                 title,
                 author,
@@ -266,13 +239,7 @@ exports.updateBookById =
 exports.deleteBookById =
     async (req, res) => {
         try {
-            const admin = req.user
             const id = req.params.id
-
-            if (!admin) {
-                const error = new Error('Admin not found...')
-                throw error
-            }
 
             const book = await BOOK.findByIdAndRemove(id)
 
@@ -296,13 +263,6 @@ exports.deleteBookById =
 exports.bookGenreStatus =
     async (req, res) => {
         try {
-            const admin = req.user
-
-            if (!admin) {
-                const error = new Error('Admin not login...')
-                throw error
-            }
-
             const bookGenre = req.body.genre
             const status = req.body.status
 
@@ -333,15 +293,8 @@ exports.bookGenreStatus =
 exports.getaAllUsers =
     async (req, res) => {
         try {
-            const admin = req.user
             const page = req.query.page ? req.query.page : 1
             const actualpage = parseInt(page) - 1
-            const record = actualpage * 3
-
-            if (!admin) {
-                const error = new Error('Admin not found...')
-                throw error
-            }
 
             const searchData = req.query.search ? {
                 $match: {
@@ -377,13 +330,6 @@ exports.getaAllUsers =
 exports.getAllOrders =
     async (req, res) => {
         try {
-            const admin = req.user
-
-            if (!admin) {
-                const error = new Error('Admin not found...')
-                throw error
-            }
-
             const page = req.query.page ? req.query.page : 1
             const actualpage = parseInt(page) - 1
             const record = actualpage * 2
@@ -424,12 +370,6 @@ exports.getAllOrders =
 exports.getAllPaymentList =
     async (req, res) => {
         try {
-            const admin = req.user
-            if (!admin) {
-                const error = new Error('Admin not found...')
-                throw error
-            }
-
             const page = req.query.page ? req.query.page : 1
             const actualpage = parseInt(page) - 1
             const record = actualpage * 2
