@@ -7,8 +7,6 @@ const ORDER = require('../models/orderSchema')
 const RATING = require('../models/ratingSchema')
 const PAYMENT = require('../models/paymentSchema')
 
-
-// This is a side fetures
 const bcrypt = require('bcrypt')
 const fs = require('fs')
 const nodemailer = require('nodemailer')
@@ -28,7 +26,6 @@ exports.createUser =
             const pass = req.body.password
 
             var token = TokenGenerator.generate();
-
             const password = await bcrypt.hash(pass, 10)
 
             const findUserByEmail = await USER.findOne({ email })
@@ -67,7 +64,7 @@ exports.createUser =
                     to: user.email, // list of receivers
                     subject: "Hello ✔", // Subject line
                     text: `Hello ${user.username}, Your otp is ${otp} `, // plain text body
-                });
+                })
             }
 
             return res.status(201).json({
@@ -88,11 +85,6 @@ exports.otpVerification =
         try {
             const token = req.headers.token
             const otp = req.body.otp
-
-            if (!token) {
-                const error = new Error('Token not availabel...')
-                throw error
-            }
 
             const user = await USER.findOne({ token })
 
@@ -125,8 +117,7 @@ exports.otpVerification =
 exports.userLogin =
     async (req, res) => {
         try {
-            const email = req.body.email
-            const password = req.body.password
+            const { email , password } = req.body
 
             const user = await USER.findOne({ email })
 
@@ -134,11 +125,6 @@ exports.userLogin =
 
             if (!pass) {
                 const error = new Error('Wrong password...')
-                throw error
-            }
-
-            if (!user) {
-                const error = new Error('User not found...')
                 throw error
             }
 
@@ -191,11 +177,6 @@ exports.findAllRecommandation =
                 'recommandId.genre.status': 0,
             })
 
-            if (!allRecommandation) {
-                const error = new Error('recommadation not found...')
-                throw error
-            }
-
             const message = allRecommandation.length > 0 ? 'All available recommandation fetched...' : 'right now no recommandation found..'
 
             return res.json({
@@ -214,8 +195,6 @@ exports.findAllRecommandation =
 exports.getAllGenres =
     async (req, res) => {
         try {
-            const user = req.user
-
             const allGenre = await GENRE.aggregate([
                 { $match: { status: 1 } }
             ])
@@ -279,12 +258,8 @@ exports.recommandBooks =
                     userId: user._id,
                     recommandId: ids
                 })
-
-                if (!addRecommadation) {
-                    const error = new Error('Id not addedd...')
-                    throw error
-                }
             }
+
             return res.json({
                 success: true,
                 message: 'Add as reccommanded Ids...'
@@ -306,7 +281,7 @@ exports.updateRecommandation =
             const findRecommandation = await RECOMMAND.findOne({ userId: user._id })
 
             for (let i = 0; i < findRecommandation.recommandId.length; i++) {
-                console.log(findRecommandation.recommandId[i])
+                
                 for (let j = 0; j < ids.length; j++) {
                     if (ids[j] == findRecommandation.recommandId[i]) {
                         const updatedIds = findRecommandation.recommandId.splice(findRecommandation.recommandId[i], i)
@@ -314,12 +289,6 @@ exports.updateRecommandation =
                         const updateRecommandation = await RECOMMAND.findOneAndUpdate({ userId: user._id }, {
                             recommandId: updatedIds
                         })
-
-                        if (!updateRecommandation) {
-                            const error = new Error('Id not removed..')
-                            throw error
-                        }
-
                     }
                 }
             }
@@ -346,8 +315,6 @@ exports.findAllAvailableBooks =
             const totalBook = await BOOK.find().count()
             const totalPages = totalBook / 5
             const pages = Math.ceil(totalPages)
-
-            console.log('pages is : ', pages)
 
             const searchData = req.query.search ? {
                 $match: {
@@ -450,14 +417,14 @@ exports.findAllAvailableBooks =
 
             let avg = [];
             for (let i = 0; i < books.length; i++) {
-                console.log(books[i]._id)
+                
                 const bookId = books[i]._id
 
                 let totalRate = 0;
                 const bookName = await RATING.aggregate([
                     { $match: { $expr: { $eq: ['$bookId', { $toObjectId: books[i]._id }] } } }
                 ])
-                console.log(bookName)
+                
                 for (let j = 0; j < bookName.length; j++) {
                     const rating = bookName[j].rating
 
