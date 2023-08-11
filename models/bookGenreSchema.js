@@ -6,8 +6,7 @@ const bookGenreSchema = new mongoose.Schema({
     },
     status: {
         type: Number,
-        default: 1,
-        enum:[0,1]
+        default: 1
     }
 })
 

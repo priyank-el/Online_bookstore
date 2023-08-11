@@ -57,7 +57,7 @@ router.get('/find-all-books', adminAuth ,findAllBooks)
 router.get('/find-book/:id', adminAuth ,findBookById)
 router.put('/update-book/:id', adminAuth , validators('updateBook') , updateBookById)
 router.delete('/delete-book/:id', adminAuth ,deleteBookById)
-router.post('/genre-status', adminAuth ,bookGenreStatus)
+router.post('/genre-status', adminAuth , validators('updateGenreStatus') , bookGenreStatus)
 
 // ========================================= USERS API ========================================= //
 router.get('/all-users', adminAuth ,getaAllUsers)
