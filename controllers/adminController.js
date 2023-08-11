@@ -44,13 +44,6 @@ exports.createBookGenre = async (req, res) => {
   try {
     const genre = req.body.genre
 
-    const isAvailable = await GENRE.findOne({ genre })
-
-    if (isAvailable) {
-      const error = new Error("Book genre already exist..")
-      throw error
-    }
-
     const createGenre = await GENRE.create({ genre })
 
     return res.json({
