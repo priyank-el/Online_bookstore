@@ -87,8 +87,6 @@ exports.createBook = async (req, res) => {
       { $match: { recommandId: book.genre } },
     ])
 
-    console.log(allData)
-
     for (let i = 0; i < allData.length; i++) {
         const sendNotification = await NOTIFY.create({
           notification: `new book ${book.title} created in your recommandation..`,
