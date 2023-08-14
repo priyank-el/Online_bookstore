@@ -10,25 +10,27 @@ const validator = require('../../utils/validaterequest');
 router.post('/create', createUser)
 router.post('/otp', otpVerification)
 router.post('/login', userLogin)
-router.get('/all-books', jwtAuth , userAuth , findAllAvailableBooks)
-
-router.post('/add-cart', jwtAuth, userAuth, validator('addToCart'), addToCart)
-router.post('/remove-cart', jwtAuth, userAuth, removeToCart)
-router.get('/show-cart', jwtAuth, userAuth, getCartDetailByLoginUser)
-
 router.put('/update', jwtAuth, userAuth, updateProfile)
 router.get('/profile', jwtAuth, userAuth, viewProfile)
+
+router.get('/all-books', jwtAuth , userAuth , findAllAvailableBooks)
+router.post('/add-cart', jwtAuth, userAuth, validator('addToCart'), addToCart)
+router.post('/remove-cart', jwtAuth, userAuth, validator('removeCart'), removeToCart)
+router.get('/show-cart', jwtAuth, userAuth, getCartDetailByLoginUser)
+
 router.get('/order', jwtAuth, userAuth, makeOrder)
 router.get('/view-order', jwtAuth, userAuth, viewOrderDetail)
-router.post('/payment', jwtAuth, userAuth, payment)
-router.post('/view-rating', jwtAuth, userAuth, viewratingByBook)
-router.post('/recommand', jwtAuth, userAuth, recommandBooks)
 
-router.post('/update-recommandation', jwtAuth, userAuth, updateRecommandation)
-router.get('/all-recommandation', jwtAuth, userAuth, findAllRecommandation)
 router.get('/all-genre', jwtAuth, userAuth, getAllGenres)
 
+router.post('/recommand', jwtAuth, userAuth, recommandBooks)
+router.post('/update-recommandation', jwtAuth, userAuth, updateRecommandation)
+router.get('/all-recommandation', jwtAuth, userAuth, findAllRecommandation)
+
 router.post('/rating', jwtAuth, userAuth, validator('bookRating'), ratingBooks)
-router.put('/update-rating', jwtAuth, userAuth, updateratingsByUser)
+router.put('/update-rating', jwtAuth, userAuth, validator('updateRatings'), updateratingsByUser)
+router.post('/view-rating', jwtAuth, userAuth, validator('viewRatings'), viewratingByBook)
+
+router.post('/payment', jwtAuth, userAuth, validator('payment'), payment)
 
 module.exports = router
