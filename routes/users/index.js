@@ -5,12 +5,14 @@ const router = express.Router()
 const jwtAuth = require('../../middleware/jwtAuth')
 const userAuth = require('../../middleware/userAuth')
 
+const validator = require('../../utils/validaterequest');
+
 router.post('/create', createUser)
 router.post('/otp', otpVerification)
 router.post('/login', userLogin)
 router.get('/all-books', jwtAuth , userAuth , findAllAvailableBooks)
 
-router.post('/add-cart', jwtAuth, userAuth, addToCart)
+router.post('/add-cart', jwtAuth, userAuth, validator('addToCart'), addToCart)
 router.post('/remove-cart', jwtAuth, userAuth, removeToCart)
 router.get('/show-cart', jwtAuth, userAuth, getCartDetailByLoginUser)
 
@@ -26,8 +28,7 @@ router.post('/update-recommandation', jwtAuth, userAuth, updateRecommandation)
 router.get('/all-recommandation', jwtAuth, userAuth, findAllRecommandation)
 router.get('/all-genre', jwtAuth, userAuth, getAllGenres)
 
-router.post('/rating', jwtAuth, userAuth, ratingBooks)
-
+router.post('/rating', jwtAuth, userAuth, validator('bookRating'), ratingBooks)
 router.put('/update-rating', jwtAuth, userAuth, updateratingsByUser)
 
 module.exports = router

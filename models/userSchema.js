@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
 
-
-
 const userSchema = new mongoose.Schema({
     fullname: {
         type: String
@@ -30,10 +28,8 @@ const userSchema = new mongoose.Schema({
         }
     }
 },
-    { toJSON: { getters: true } }
-    , {
-        timestamps: true
-    })
+    { toJSON: { getters: true } },
+    { timestamps: true })
 
 const USER = mongoose.model('USER', userSchema)
 module.exports = USER

@@ -12,6 +12,8 @@ const paymentSchema = new mongoose.Schema({
     totalPrice: {
         type: String
     }
+}, {
+    timestamps:true
 })
 
 const PAYMENT = mongoose.model('PAYMENT', paymentSchema)

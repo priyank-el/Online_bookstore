@@ -13,7 +13,8 @@ const createBookGenreValidator = Joi.object({
     .external(async (genre) => {
         const isgenre = await checkGenre(genre)
         if(isgenre) {
-            const error = new Error('Genre already has..')
+            const error = new Error('Genre already has..');
+            throw error;
         }
         return genre
     })

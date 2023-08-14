@@ -10,7 +10,8 @@ module.exports = (validator) => async (req, res, next) => {
         req.body = validated;
         next();
       } catch (error) {
-          return res.json({
+        console.log(error);
+          return res.status(401).json({
               success:false,
               message:error.details
           })

@@ -12,23 +12,23 @@ const bcrypt = require("bcrypt")
 
 exports.registerAdmin = async (req, res) => {
   try {
-    const { email, password } = req.body
-    const bcryptedPass = await bcrypt.hash(password, 10)
+    const { email, password } = req.body;
+    const bcryptedPass = await bcrypt.hash(password, 10);
 
     const admin = await ADMIN.create({
       email,
       password: bcryptedPass,
-    })
+    });
 
     return res.status(201).json({
       success: true,
       message: "admin created successfully...",
-    })
+    });
   } catch (error) {
     return res.status(401).json({
       success: false,
-      error: "Oops.." + error.message
-    })
+      error: "Oops.." + error.message,
+    });
   }
 }
 
@@ -36,8 +36,8 @@ exports.loginAdmin = async (req, res) => {
   return res.json({
     success: true,
     message: "Admin login successfully...",
-  })
-};
+  });
+}
 // ======================================== Books API =============================================
 
 exports.createBookGenre = async (req, res) => {
@@ -53,7 +53,7 @@ exports.createBookGenre = async (req, res) => {
   } catch (error) {
     return res.json({
       success: false,
-      message: "Oops.." + error.message
+      message: "Oops.." + error,
     })
   }
 }
@@ -79,20 +79,20 @@ exports.createBook = async (req, res) => {
     ])
 
     for (let i = 0; i < allData.length; i++) {
-        const sendNotification = await NOTIFY.create({
-          notification: `new book ${book.title} created in your recommandation..`,
-          userId: allData[i].userId,
-        })
+      const sendNotification = await NOTIFY.create({
+        notification: `new book ${book.title} created in your recommandation..`,
+        userId: allData[i].userId,
+      })
     }
 
     return res.status(201).json({
       success: true,
       message: "Book Created successfully...",
-    });
+    })
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Oops.." + error.message
+      message: "Oops.." + error.message,
     })
   }
 }
@@ -105,14 +105,14 @@ exports.findAllBooks = async (req, res) => {
 
     const searchData = req.query.search
       ? {
-          $match: {
-            $or: [
-              { title: req.query.search },
-              { author: req.query.search },
-              { status: req.query.search },
-            ],
-          },
-        }
+        $match: {
+          $or: [
+            { title: req.query.search },
+            { author: req.query.search },
+            { status: req.query.search },
+          ],
+        },
+      }
       : { $match: {} }
 
     const book = await BOOK.aggregate([searchData])
@@ -128,7 +128,7 @@ exports.findAllBooks = async (req, res) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Oops.." + error.message
+      message: "Oops.." + error.message,
     })
   }
 }
@@ -141,13 +141,13 @@ exports.findBookById = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "All users found...",
+      message: "Book found...",
       book,
     })
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Oops.." + error.message
+      message: "Oops.." + error.message,
     })
   }
 }
@@ -156,7 +156,6 @@ exports.updateBookById = async (req, res) => {
   try {
     const id = req.params.id
     const { title, author, genre, price, numbersOfBooks } = req.body
-
     const status = numbersOfBooks > 0 ? "Available" : "Unavailable"
 
     const book = await BOOK.findByIdAndUpdate(id, {
@@ -171,11 +170,11 @@ exports.updateBookById = async (req, res) => {
     return res.json({
       success: true,
       message: "book Updated successfully...",
-    })
+    });
   } catch (error) {
     return res.json({
       success: false,
-      message: "Oops.." + error.message
+      message: "Oops.." + error.message,
     })
   }
 }
@@ -189,19 +188,18 @@ exports.deleteBookById = async (req, res) => {
     return res.json({
       success: true,
       message: "book Deleted successfully...",
-    })
+    });
   } catch (error) {
     return res.json({
       success: false,
-      message: "Oops.." + error.message
-    })
+      message: "Oops.." + error.message,
+    });
   }
 }
 
 exports.bookGenreStatus = async (req, res) => {
   try {
-    const bookGenre = req.body.genre
-    const status = req.body.status
+    const { bookGenre , status } = req.body
 
     const updateGenre = await GENRE.findOneAndUpdate(
       { genre: bookGenre },
@@ -230,10 +228,10 @@ exports.getaAllUsers = async (req, res) => {
 
     const searchData = req.query.search
       ? {
-          $match: {
-            $or: [{ fullname: req.query.search }, { email: req.query.search }],
-          },
-        }
+        $match: {
+          $or: [{ fullname: req.query.search }, { email: req.query.search }],
+        },
+      }
       : { $match: {} }
 
     const allUsers = await USER.aggregate([searchData])
@@ -253,11 +251,11 @@ exports.getaAllUsers = async (req, res) => {
       success: true,
       messsage: "All users found...",
       allUsers,
-    })
+    });
   } catch (error) {
     return res.json({
       success: false,
-      message: "Oops.." + error.message
+      message: "Oops.." + error.message,
     })
   }
 }
@@ -277,7 +275,7 @@ exports.getAllOrders = async (req, res) => {
 
     return res.json({
       success: true,
-      data: ordersList
+      data: ordersList,
     })
   } catch (error) {
     return res.json({
@@ -285,15 +283,15 @@ exports.getAllOrders = async (req, res) => {
       message: error.message,
     })
   }
-};
+}
 
 // ======================================== Payment API =============================================
 
 exports.getAllPaymentList = async (req, res) => {
   try {
-    const page = req.query.page ? req.query.page : 1;
-    const actualpage = parseInt(page) - 1;
-    const record = actualpage * 2;
+    const page = req.query.page ? req.query.page : 1
+    const actualpage = parseInt(page) - 1
+    const record = actualpage * 2
 
     const paymentList = await PAYMENT.aggregate([
       {
@@ -320,16 +318,16 @@ exports.getAllPaymentList = async (req, res) => {
         "user.createdAt": 0,
         "user.updatedAt": 0,
         "user.__v": 0,
-      });
+      })
 
     return res.json({
       success: true,
-      list: paymentList
+      list: paymentList,
     })
   } catch (error) {
     return res.json({
       success: false,
-      message: 'Some error occurs..' + error.message,
+      message: "Some error occurs.." + error.message,
     })
   }
 }

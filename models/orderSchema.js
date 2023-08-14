@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const orderSchema = mongoose.Schema({
+const orderSchema = new mongoose.Schema({
     about_book: {
         type: [mongoose.Schema.Types.Mixed]
     },
@@ -13,6 +13,8 @@ const orderSchema = mongoose.Schema({
         enum: ['Pending', 'Done'],
         default: 'Pending'
     }
+} ,{
+    timestamps:true
 })
 
 const ORDER = mongoose.model('ORDER', orderSchema)

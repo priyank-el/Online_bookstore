@@ -3,11 +3,15 @@ const createBookGenre = require('../validators/adminValidation/createBookgenreVa
 const createBook = require('./adminValidation/createBookValidator')
 const updateBook = require('../validators/adminValidation/updateBookvalidator')
 const updateGenreStatus = require('../validators/adminValidation/bookGenreStatusValidator')
+const addToCart = require('../validators/userValidation/addToCartValidator')
+const bookRating = require('./userValidation/giveRatingBooksValidators')
 
 module.exports = {
     adminRegister,
     createBook,
     createBookGenre,
     updateBook,
-    updateGenreStatus
+    updateGenreStatus,
+    addToCart,
+    bookRating
 }
