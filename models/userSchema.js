@@ -31,5 +31,18 @@ const userSchema = new mongoose.Schema({
     { toJSON: { getters: true } },
     { timestamps: true })
 
+userSchema.pre('save', async function(next) {
+    const email = this.email;
+    const isUser = await USER.findOne({ email })
+    if(isUser){
+        console.log("User found..");
+        const error = new Error('Email already exist...');
+        const status = 403;
+        next({error , status});
+    }else{
+        next();
+    }
+})
+
 const USER = mongoose.model('USER', userSchema)
 module.exports = USER
