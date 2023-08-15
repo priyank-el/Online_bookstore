@@ -26,12 +26,6 @@ exports.createUser = async (req, res) => {
     var token = TokenGenerator.generate();
     const password = await bcrypt.hash(pass, 10);
 
-    const findUserByEmail = await USER.findOne({ email });
-
-    if (findUserByEmail) {
-      const error = new Error("This email already in use...");
-      throw error;
-    } else {
       // ========================================== OTP GENERATOR =============================================
       const otp = otpGenerator.generate(4, {
         upperCaseAlphabets: false,
@@ -67,7 +61,6 @@ exports.createUser = async (req, res) => {
       } catch (error) {
         console.log(error);
       }
-    }
 
     return res.status(201).json({
       success: true,
@@ -75,9 +68,9 @@ exports.createUser = async (req, res) => {
       token,
     });
   } catch (error) {
-    return res.status(401).json({
+    return res.status(error.status).json({
       success: false,
-      message: error.message,
+      message: error.error.message,
     });
   }
 };
@@ -556,7 +549,6 @@ exports.getCartDetailByLoginUser = async (req, res) => {
 exports.removeToCart = async (req, res) => {
   try {
     const user = req.user;
-
     const { bookId , quntity } = req.body;
 
     const book = await CART.aggregate([
@@ -852,14 +844,12 @@ exports.viewOrderDetail = async (req, res) => {
     });
 
     let totalPrice = 0;
-
     for (let i = 0; i < data.length; i++) {
       if (data[i].paymentStatus == "Pending") {
         for (let j = 0; j < data[i].about_book.length; j++) {
           const id = data[i].about_book[j].bookId;
 
           const book = await BOOK.findById(id);
-          console.log(book);
 
           const price = book.price;
           const money = price.split("$")[0];
@@ -869,7 +859,6 @@ exports.viewOrderDetail = async (req, res) => {
         }
       }
     }
-
     return res.json({
       success: true,
       data,
@@ -903,28 +892,24 @@ exports.ratingBooks = async (req, res) => {
 
     for (let i = 0; i < userOrderModel.about_book.length; i++) {
       if (book == userOrderModel.about_book[i].bookId) {
-        console.log("Id found..." + userOrderModel.about_book[i].bookId);
-
-        const ratingBook = await RATING.create({
-          rating,
-          review,
-          bookId: book,
-          userId: user._id,
-        });
-
-        if (!ratingBook) {
-          const error = new Error("Book not found...");
-          throw error;
+        try {
+          const ratingBook = await RATING.create({
+            rating,
+            review,
+            bookId: book,
+            userId: user._id,
+          });
+        } catch (error) {
+          console.log(error);
         }
       }
     }
-
     return res.json({
       success: true,
       message: "Give book rating or review...",
     });
   } catch (error) {
-    return res.json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
@@ -956,7 +941,7 @@ exports.updateratingsByUser = async (req, res) => {
       messsage: "Book Ratings and review updated ..",
     });
   } catch (error) {
-    return res.json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
@@ -1005,7 +990,7 @@ exports.viewratingByBook = async (req, res) => {
       bookData,
     });
   } catch (error) {
-    return res.json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
@@ -1055,7 +1040,7 @@ exports.payment = async (req, res) => {
       message: "USER done payment successfully...",
     });
   } catch (error) {
-    return res.json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });

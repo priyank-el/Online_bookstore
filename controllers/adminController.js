@@ -51,9 +51,10 @@ exports.createBookGenre = async (req, res) => {
       message: "Genre created successfully...",
     })
   } catch (error) {
-    return res.json({
+    console.log(error);
+    return res.status(error.status).json({
       success: false,
-      message: "Oops.." + error,
+      message: "Oops.." + error.error.message,
     })
   }
 }
@@ -90,9 +91,9 @@ exports.createBook = async (req, res) => {
       message: "Book Created successfully...",
     })
   } catch (error) {
-    return res.status(401).json({
+    return res.status(error.status).json({
       success: false,
-      message: "Oops.." + error.message,
+      message: "Oops.." + error.error.message,
     })
   }
 }
