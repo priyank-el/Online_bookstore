@@ -1,5 +1,5 @@
 const express = require('express')
-const { createUser, otpVerification, userLogin, findAllAvailableBooks, addToCart, getCartDetailByLoginUser, viewratingByBook, removeToCart, updateProfile, viewOrderDetail, viewProfile, makeOrder, ratingBooks, payment, recommandBooks, updateRecommandation, findAllRecommandation, getAllGenres, updateratingsByUser } = require('../../controllers/userControllers')
+const { createUser, otpVerification, userLogin, findAllAvailableBooks, addToCart, getCartDetailByLoginUser, viewratingByBook, removeToCart, updateProfile, viewOrderDetail, viewProfile, makeOrder, ratingBooks, payment, recommandBooks, updateRecommandation, findAllRecommandation, getAllGenres, updateratingsByUser , updateUserPassword} = require('../../controllers/userControllers')
 const router = express.Router()
 
 const jwtAuth = require('../../middleware/jwtAuth')
@@ -11,6 +11,7 @@ router.post('/create', createUser)
 router.post('/otp', otpVerification)
 router.post('/login', userLogin)
 router.put('/update', jwtAuth, userAuth, updateProfile)
+router.put('/reset-password', jwtAuth, userAuth, updateUserPassword)
 router.get('/profile', jwtAuth, userAuth, viewProfile)
 
 router.get('/all-books', jwtAuth , userAuth , findAllAvailableBooks)
