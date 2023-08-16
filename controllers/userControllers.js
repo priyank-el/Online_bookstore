@@ -68,7 +68,8 @@ exports.createUser = async (req, res) => {
       token,
     });
   } catch (error) {
-    return res.status(error.status).json({
+    const status = error.status || 401;
+    return res.status(status).json({
       success: false,
       message: error.error.message,
     });
@@ -81,11 +82,6 @@ exports.otpVerification = async (req, res) => {
     const otp = req.body.otp;
 
     const user = await USER.findOne({ token });
-
-    if (!user) {
-      const error = new Error("User not found...");
-      throw error;
-    }
 
     if (otp !== user.otp) {
       const error = new Error("Otp not currect...");
@@ -101,7 +97,7 @@ exports.otpVerification = async (req, res) => {
       message: "You otp verification done...",
     });
   } catch (error) {
-    return res.json({
+    return res.status(401).json({
       success: false,
       message: error.message,
     });
@@ -113,6 +109,7 @@ exports.userLogin = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await USER.findOne({ email });
+
     if (!user.otpVerification) {
       const error = new Error("Verify OTP first...");
       throw error;
@@ -141,7 +138,7 @@ exports.userLogin = async (req, res) => {
       message: "User login successfully...",
     });
   } catch (error) {
-    return res.json({
+    return res.status(401).json({
       success: false,
       message: error.message,
     });
@@ -263,7 +260,6 @@ exports.updateRecommandation = async (req, res) => {
     for (let i = 0; i < findRecommandation.recommandId.length; i++) {
       if (id == findRecommandation.recommandId[i]) {
         const updatedIds = findRecommandation.recommandId.splice(i-1,1)
-
         try {
             const updateRecommandation = await RECOMMAND.findOneAndUpdate(
               { userId: user._id },
@@ -279,10 +275,10 @@ exports.updateRecommandation = async (req, res) => {
 
     return res.json({
       success: true,
-      message: "User Id deleted...",
+      message: "book removed from recommandation...",
     });
   } catch (error) {
-    return res.json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
@@ -394,12 +390,6 @@ exports.findAllAvailableBooks = async (req, res) => {
         avg: "$$ratings_and_reviews.ratings" / 2,
       });
 
-    for (let i = 0; i < books.length; i++) {
-      if (books[i].rating_and_reviews.length == 0) {
-        books[i].rating_and_reviews = null;
-      }
-    }
-
     let avg = [];
     for (let i = 0; i < books.length; i++) {
       const bookId = books[i]._id;
@@ -412,7 +402,7 @@ exports.findAllAvailableBooks = async (req, res) => {
           },
         },
       ]);
-
+      console.log("name of the book=======",bookName);
       for (let j = 0; j < bookName.length; j++) {
         const rating = bookName[j].rating;
 
@@ -432,7 +422,6 @@ exports.findAllAvailableBooks = async (req, res) => {
     const arrayValue = books.map((book) => {
       const averageBookid = avg.map((avgBook) => {
         if (book._id == avgBook.bookId) {
-          console.log("matched.. id", book._id);
           book.avg = avgBook.average_per_book;
         }
       });
@@ -485,7 +474,7 @@ exports.addToCart = async (req, res) => {
       message: "Cart creeated successfully...",
     });
   } catch (error) {
-    return res.json({
+    return res.status(401).json({
       success: false,
       message: error.message,
     });
@@ -522,15 +511,12 @@ exports.getCartDetailByLoginUser = async (req, res) => {
       price: "$detail.price",
       bookId: "$detail._id",
       quntity: 1,
-    });
-
-    let totalPrice = 0;
-    const price = cartDetail.map((book) => {
-      const p = book.price;
-      const original = p.split("$")[0];
-      const money = parseInt(original) * book.quntity;
-
-      totalPrice += money;
+      total_price_Of_book: {
+        $multiply: [
+          { $toInt: "$quntity" },
+          { $toDouble: "$detail.price" },
+        ],
+      },
     });
 
     return res.json({
@@ -548,7 +534,6 @@ exports.getCartDetailByLoginUser = async (req, res) => {
 
 exports.removeToCart = async (req, res) => {
   try {
-    const user = req.user;
     const { bookId , quntity } = req.body;
 
     const book = await CART.aggregate([
@@ -591,18 +576,6 @@ exports.removeToCart = async (req, res) => {
       const deleteRecord = await CART.findByIdAndDelete(book[0]._id);
     }
 
-    const findBook = await BOOK.findById(bookId);
-
-    const bookUpdate =
-      findBook.numbersOfBooks <= 0
-        ? await BOOK.findByIdAndUpdate(bookId, {
-            numbersOfBooks: book[0].detail.numbersOfBooks + quntity,
-            status: "Available",
-          })
-        : await BOOK.findByIdAndUpdate(bookId, {
-            numbersOfBooks: book[0].detail.numbersOfBooks + quntity,
-          });
-
     return res.json({
       success: true,
       message: "remove cart data",
@@ -617,10 +590,8 @@ exports.removeToCart = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const { fullname , email , password } = req.body;
+    const { fullname , email  } = req.body;
     const image = req.file.filename;
-
-    const bcryptPassword = await bcrypt.hash(password, 10);
 
     if (req.user.image) {
       fs.unlink(`public/images/${req.user.image}`, (e) => {
@@ -635,7 +606,6 @@ exports.updateProfile = async (req, res) => {
     const updateUser = await USER.findByIdAndUpdate(req.user._id, {
       fullname,
       email,
-      password: bcryptPassword,
       image,
     });
 
@@ -644,12 +614,37 @@ exports.updateProfile = async (req, res) => {
       message: "User profile updated successfully...",
     });
   } catch (error) {
-    return res.json({
+    return res.status(400).json({
       success: false,
       message: error,
     });
   }
 };
+
+exports.updateUserPassword = async (req,res) => {
+  try {
+    const { oldPassword , newPassword } = req.body;
+  
+    const isCorrect = await bcrypt.compare(oldPassword,req.user.password)
+  
+    if(isCorrect){
+      const bcryptPassword = await bcrypt.hash(newPassword,10);
+      const resetPassword = await USER.findByIdAndUpdate(req.user._id , {
+        password:bcryptPassword
+      })
+    }
+  
+    return res.json({
+      success:true,
+      message:"password updated..."
+    })
+  } catch (error) {
+    return res.status(401).json({
+      success:false,
+      message:error.message
+    })
+  }
+}
 
 exports.viewProfile = async (req, res) => {
   try {
@@ -664,7 +659,7 @@ exports.viewProfile = async (req, res) => {
       viewUser,
     });
   } catch (error) {
-    return res.json({
+    return res.status(401).json({
       success: true,
       message: error.message,
     });
@@ -673,36 +668,18 @@ exports.viewProfile = async (req, res) => {
 
 exports.makeOrder = async (req, res) => {
   try {
-    const cartdata = await CART.aggregate([{ $match: { userId: req.user._id } }]);
+    const cartdata = await CART.aggregate([
+      { $match: { userId: req.user._id } },
+      { $unset:['__v', '_id' , 'userId'] }
+    ]);
 
     if (cartdata.length == 0) {
       const error = new Error("Cart is empty...");
       throw error;
     }
 
-    const b = cartdata.map((e) => {
-      return e.bookId;
-    });
-
-    const q = cartdata.map((e) => {
-      return e.quntity;
-    });
-
-    let array = [];
-    for (let i = 0; i < b.length; i++) {
-      for (let j = 0; j < q.length; j++) {
-        if (i == j) {
-          let obj = {
-            bookId: b[i],
-            quntity: q[j],
-          };
-          array = [...array, obj];
-        }
-      }
-    }
-
     const order = await ORDER.create({
-      about_book: array,
+      about_book: cartdata,
       userId: req.user._id,
     });
 
@@ -814,20 +791,15 @@ exports.makeOrder = async (req, res) => {
 
     const deleteData = dataCart.map(async (data) => {
       const rem = await CART.findByIdAndDelete(data._id);
-
-      if (!rem) {
-        const error = new Error("Cart not deleted...");
-        throw error;
-      }
     });
 
     return res.json({
       success: true,
-      message: "Thank you for bussiness with us...",
+      message: "Order place successfully...",
       detail,
     });
   } catch (error) {
-    return res.json({
+    return res.status(401).json({
       success: false,
       message: error.message,
     });
@@ -852,7 +824,6 @@ exports.viewOrderDetail = async (req, res) => {
           const book = await BOOK.findById(id);
 
           const price = book.price;
-          const money = price.split("$")[0];
           const p = parseInt(money) * data[i].about_book[j].quntity;
 
           totalPrice += p;
