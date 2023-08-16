@@ -633,6 +633,11 @@ exports.updateUserPassword = async (req,res) => {
         password:bcryptPassword
       })
     }
+
+    if(!isCorrect){
+      const error = new Error('Password wrong..');
+      throw error;
+    }
   
     return res.json({
       success:true,
