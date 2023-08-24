@@ -2,7 +2,7 @@
 
 
 This website is on about book-store.
-This project includes validation like joi or validatorjs 
+\This project includes validation like joi or validatorjs.
 
 ## Installation
 
