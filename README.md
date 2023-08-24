@@ -1,7 +1,8 @@
 # Online_bookstore
 
 
-This website is on about book-store.\This project includes validation like joi or validatorjs 
+This website is on about book-store.
+This project includes validation like joi or validatorjs 
 
 ## Installation
 
