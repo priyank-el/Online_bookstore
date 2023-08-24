@@ -1,6 +1,6 @@
 const express = require('express')
 
-const { createUser, otpVerification, userLogin, findAllAvailableBooks, addToCart, getCartDetailByLoginUser, viewratingByBook, removeToCart,removeBookQuntityInCart, updateProfile, viewOrderDetail, viewProfile, makeOrder, ratingBooks, payment, recommandBooks, updateRecommandation, findAllRecommandation, getAllGenres, updateratingsByUser , updateUserPassword} = require('../../controllers/userControllers')
+const { createUser, otpVerification, userLogin,deleteUser,logout, findAllAvailableBooks, addToCart, getCartDetailByLoginUser, viewratingByBook, removeToCart,removeBookQuntityInCart, updateProfile, viewOrderDetail, viewProfile, makeOrder, ratingBooks, payment, recommandBooks, updateRecommandation, findAllRecommandation, getAllGenres, updateratingsByUser , updateUserPassword} = require('../../controllers/userControllers')
 const router = express.Router()
 
 const validation = require('../../validators/rulesRoutes/usersvalidation/userRules')
@@ -14,6 +14,8 @@ router.post('/login',validation.loginUser,userLogin)
 router.put('/update', jwtAuth, userAuth,updateProfile)
 router.put('/reset-password', jwtAuth, userAuth, validation.resetPassword,updateUserPassword)
 router.get('/profile', jwtAuth, userAuth, viewProfile)
+router.delete('/delete',jwtAuth,userAuth,deleteUser)
+router.post('/logout',jwtAuth,userAuth,logout)
 
 router.get('/all-books', jwtAuth , userAuth , findAllAvailableBooks)
 router.post('/add-cart', jwtAuth, userAuth,validation.createCart,addToCart)

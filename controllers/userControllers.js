@@ -124,6 +124,16 @@ exports.userLogin = async (req, res) => {
   }
 };
 
+exports.logout = async (req,res) => {
+try {
+    res.clearCookie("JwtToken")
+  
+    successResponce('user logout..',200,res)
+} catch (error) {
+  errorResponse(error.message,400,res)
+}
+}
+
 exports.findAllRecommandation = async (req, res) => {
   try {
     const user = req.user;
@@ -535,6 +545,16 @@ exports.viewProfile = async (req, res) => {
     errorResponse(error,401,res)
   }
 };
+
+exports.deleteUser = async (req,res) => {
+try {
+    await USER.findByIdAndDelete(req.user._id)
+  
+    successResponce('user deleted..',200,res)
+} catch (error) {
+  errorResponse(error,400,res)
+}
+}
 
 exports.makeOrder = async (req, res) => {
   try {
