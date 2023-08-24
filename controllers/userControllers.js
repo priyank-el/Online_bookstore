@@ -12,6 +12,9 @@ const fs = require("fs");
 const nodemailer = require("nodemailer");
 const otpGenerator = require("otp-generator");
 var jwt = require("jsonwebtoken");
+const { default: mongoose } = require("mongoose");
+
+const {errorResponse , successResponce} =require('../validators/handlers/handler')
 
 const TokenGenerator = require("token-generator")({
   salt: "your secret ingredient for this magic recipe",
@@ -26,53 +29,45 @@ exports.createUser = async (req, res) => {
     var token = TokenGenerator.generate();
     const password = await bcrypt.hash(pass, 10);
 
-      // ========================================== OTP GENERATOR =============================================
-      const otp = otpGenerator.generate(4, {
-        upperCaseAlphabets: false,
-        specialChars: false,
-        lowerCaseAlphabets: false,
-      });
+    // ========================================== OTP GENERATOR =============================================
+    const otp = otpGenerator.generate(4, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+    });
 
-      const user = await USER.create({
-        fullname,
-        email,
-        password,
-        otp,
-        token,
-      });
-
-      // ========================================== TRANSPORTER FOR NODEMAILER =============================================
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.ADMIN_EMAIL,
-          pass: process.env.ADMIN_PASS,
-        },
-      });
-
-      // send mail with defined transport object
-      try {
-        const info = await transporter.sendMail({
-          from: process.env.ADMIN_EMAIL, // sender address
-          to: user.email, // list of receivers
-          subject: "Hello ✔", // Subject line
-          text: `Hello ${user.username}, Your otp is ${otp} `, // plain text body
-        });
-      } catch (error) {
-        console.log(error);
-      }
-
-    return res.status(201).json({
-      success: true,
-      message: "User Created successfully...",
+    const user = await USER.create({
+      fullname,
+      email,
+      password,
+      otp,
       token,
     });
-  } catch (error) {
-    const status = error.status || 401;
-    return res.status(status).json({
-      success: false,
-      message: error.error.message,
+
+    // ========================================== TRANSPORTER FOR NODEMAILER =============================================
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.ADMIN_EMAIL,
+        pass: process.env.ADMIN_PASS,
+      },
     });
+
+    // send mail with defined transport object
+    try {
+      await transporter.sendMail({
+        from: process.env.ADMIN_EMAIL, // sender address
+        to: user.email, // list of receivers
+        subject: "Hello ✔", // Subject line
+        text: `Hello ${user.username}, Your otp is ${otp} `, // plain text body
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
+    successResponce({token:token , success:'User registered..'},200,res)
+  } catch (error) {
+    errorResponse(error,401,res)
   }
 };
 
@@ -84,23 +79,16 @@ exports.otpVerification = async (req, res) => {
     const user = await USER.findOne({ token });
 
     if (otp !== user.otp) {
-      const error = new Error("Otp not currect...");
-      throw error;
+      throw 'otp not correct..'
     }
 
     const userUpdate = await USER.findByIdAndUpdate(user.id, {
       otpVerification: true,
     });
 
-    return res.json({
-      success: true,
-      message: "You otp verification done...",
-    });
+    successResponce('otp verified..',200,res)
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,401,res)
   }
 };
 
@@ -111,15 +99,13 @@ exports.userLogin = async (req, res) => {
     const user = await USER.findOne({ email });
 
     if (!user.otpVerification) {
-      const error = new Error("Verify OTP first...");
-      throw error;
+      throw 'otp verification fail..'
     }
 
     const pass = await bcrypt.compare(password, user.password);
 
     if (!pass) {
-      const error = new Error("Wrong password...");
-      throw error;
+      throw "Wrong password..."
     }
 
     const jwtToken = jwt.sign({ email }, process.env.SECRET, {
@@ -127,21 +113,14 @@ exports.userLogin = async (req, res) => {
     });
 
     if (!jwtToken) {
-      const error = new Error("Token not found...");
-      throw error;
+      throw "Token not found..."
     }
 
     res.cookie("JwtToken", jwtToken);
-
-    return res.status(200).json({
-      success: true,
-      message: "User login successfully...",
-    });
+    
+    successResponce("user login done.." , 200 , res)
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error , 401 , res)
   }
 };
 
@@ -172,16 +151,9 @@ exports.findAllRecommandation = async (req, res) => {
         ? "All available recommandation fetched..."
         : "right now no recommandation found..";
 
-    return res.json({
-      success: true,
-      AllGenre: allRecommandation[0].recommandId,
-      message,
-    });
+    successResponce(allRecommandation[0].recommandId , 200 , res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error , 401 , res)
   }
 };
 
@@ -194,31 +166,25 @@ exports.getAllGenres = async (req, res) => {
       }
     );
 
-    return res.json({
-      success: true,
-      allGenre,
-    });
+    successResponce(allGenre , 200 , res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error , 401 , res)
   }
 };
 
 exports.recommandBooks = async (req, res) => {
   try {
     const user = req.user;
-    const ids = req.body.ids;
+    const id = req.body.id;
 
     const isAvailable = await RECOMMAND.findOne({ userId: user._id });
 
     if (isAvailable) {
       let array = [];
       array = isAvailable.recommandId;
-      array = array.concat(ids);
+      array = array.concat(id);
       try {
-        const findRecomand = await RECOMMAND.findByIdAndUpdate(
+        await RECOMMAND.findByIdAndUpdate(
           isAvailable._id,
           {
             recommandId: array,
@@ -229,24 +195,18 @@ exports.recommandBooks = async (req, res) => {
       }
     } else {
       try {
-        const addRecommadation = await RECOMMAND.create({
+        await RECOMMAND.create({
           userId: user._id,
-          recommandId: ids,
+          recommandId: id,
         });
       } catch (error) {
         console.log(error);
       }
     }
 
-    return res.json({
-      success: true,
-      message: "Add as reccommanded Ids...",
-    });
+    successResponce('Add as recommad Id..' , 200 , res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error , 202  , res)
   }
 };
 
@@ -259,29 +219,23 @@ exports.updateRecommandation = async (req, res) => {
 
     for (let i = 0; i < findRecommandation.recommandId.length; i++) {
       if (id == findRecommandation.recommandId[i]) {
-        const updatedIds = findRecommandation.recommandId.splice(i-1,1)
+        const updatedIds = findRecommandation.recommandId.splice(i - 1, 1);
         try {
-            const updateRecommandation = await RECOMMAND.findOneAndUpdate(
-              { userId: user._id },
-              {
-                recommandId: updatedIds,
-              }
-            );
+          const updateRecommandation = await RECOMMAND.findOneAndUpdate(
+            { userId: user._id },
+            {
+              recommandId: updatedIds,
+            }
+          );
         } catch (error) {
-            console.log(error);
+          console.log(error);
         }
       }
     }
 
-    return res.json({
-      success: true,
-      message: "book removed from recommandation...",
-    });
+    successResponce("book removed from recommandation..." , 200 , res)
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error , 400 , res)
   }
 };
 
@@ -293,7 +247,6 @@ exports.findAllAvailableBooks = async (req, res) => {
 
     const totalBook = await BOOK.find().count();
     const totalPages = totalBook / 5;
-    const pages = Math.ceil(totalPages);
 
     const searchData = req.query.search
       ? {
@@ -387,81 +340,40 @@ exports.findAllAvailableBooks = async (req, res) => {
         image: 1,
         price: 1,
         numbersOfBooks: 1,
-        avg: "$$ratings_and_reviews.ratings" / 2,
+        avg: { $avg: "$ratings_and_reviews.rating" },
       });
 
-    let avg = [];
-    for (let i = 0; i < books.length; i++) {
-      const bookId = books[i]._id;
-
-      let totalRate = 0;
-      const bookName = await RATING.aggregate([
-        {
-          $match: {
-            $expr: { $eq: ["$bookId", { $toObjectId: books[i]._id }] },
-          },
-        },
-      ]);
-      console.log("name of the book=======",bookName);
-      for (let j = 0; j < bookName.length; j++) {
-        const rating = bookName[j].rating;
-
-        totalRate += rating;
-      }
-      const average_per_book = totalRate / bookName.length;
-      const obj = {
-        bookId,
-        average_per_book,
-      };
-      if (!obj.average_per_book) {
-        obj.average_per_book = 0;
-      }
-      avg = [...avg, obj];
-    }
-
-    const arrayValue = books.map((book) => {
-      const averageBookid = avg.map((avgBook) => {
-        if (book._id == avgBook.bookId) {
-          book.avg = avgBook.average_per_book;
-        }
-      });
-    });
-
-    return res.json({
-      success: true,
-      message: "All books found...",
-      books,
-    });
+    successResponce(books,200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,202,res)
   }
 };
 
 exports.addToCart = async (req, res) => {
   try {
     const { bookId, quntity } = req.body;
-    
+
     const book = await BOOK.findById(bookId);
 
     if (book.numbersOfBooks < quntity) {
-      const error = new Error("book not add to cart bcz of low quntity..");
-      throw error;
+      throw "book not add to cart bcz of low quntity.."
     }
 
-    const findOldCart = await CART.aggregate([
-      { $match: { $expr: { $eq: ["$bookId", { $toObjectId: bookId }] } } },
+    const oldCart = await CART.aggregate([
       {
-        $match: { $expr: { $eq: ["$userId", { $toObjectId: req.user._id }] } },
+        $match: {
+          $and: [
+            { $expr: { $eq: ["$bookId", { $toObjectId: bookId }] } },
+            { $expr: { $eq: ["$userId", { $toObjectId: req.user._id }] } },
+          ],
+        },
       },
     ]);
 
     const userCart =
-      findOldCart.length > 0
-        ? await CART.findByIdAndUpdate(findOldCart[0]._id, {
-            quntity: findOldCart[0].quntity + quntity,
+      oldCart.length > 0
+        ? await CART.findByIdAndUpdate(oldCart[0]._id, {
+            quntity: oldCart[0].quntity + quntity,
           })
         : await CART.create({
             bookId,
@@ -469,22 +381,16 @@ exports.addToCart = async (req, res) => {
             quntity,
           });
 
-    return res.json({
-      success: true,
-      message: "Cart creeated successfully...",
-    });
+    successResponce("Cart creeated successfully...",200,res)
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,401,res)
   }
 };
 
 exports.getCartDetailByLoginUser = async (req, res) => {
   try {
     const cartDetail = await CART.aggregate([
-      { $match : { userId: req.user._id } } ,
+      { $match: { userId: req.user._id } },
       {
         $lookup: {
           from: "books",
@@ -512,85 +418,63 @@ exports.getCartDetailByLoginUser = async (req, res) => {
       bookId: "$detail._id",
       quntity: 1,
       total_price_Of_book: {
-        $multiply: [
-          { $toInt: "$quntity" },
-          { $toDouble: "$detail.price" },
-        ],
+        $multiply: [{ $toInt: "$quntity" }, { $toDouble: "$detail.price" }],
       },
     });
 
-    return res.json({
-      success: true,
-      books: cartDetail,
-      totalAmount: `${totalPrice}$`,
-    });
+    successResponce(cartDetail,200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,401,res)
   }
 };
 
 exports.removeToCart = async (req, res) => {
   try {
-    const { bookId , quntity } = req.body;
+    const { cartId } = req.body;
 
-    const book = await CART.aggregate([
-      { $match: { $expr: { $eq: ["$bookId", { $toObjectId: bookId }] } } },
-      {
-        $match: { $expr: { $eq: ["$userId", { $toObjectId: req.user._id }] } },
-      },
-      {
-        $lookup: {
-          from: "books",
-          localField: "bookId",
-          foreignField: "_id",
-          as: "detail",
-        },
-      },
-      { $unwind: "$detail" },
-    ]).project({
-      bookId: 0,
-      userId: 0,
-      __v: 0,
-      "detail.__v": 0,
-      "detail.status": 0,
-      "detail.createdAt": 0,
-      "detail.updatedAt": 0,
-      "detail._id": 0,
-    });
+    const removeCart = await CART.findByIdAndDelete(cartId)
 
-    if (book[0].quntity < quntity) {
-      const error = new Error("Input Quntity invalid...");
-      throw error;
-    }
-
-    const updateCart = await CART.findByIdAndUpdate(book[0]._id, {
-      quntity: book[0].quntity - quntity,
-    });
-
-    const record = await CART.findById(book[0]._id);
-
-    if (record.quntity == 0) {
-      const deleteRecord = await CART.findByIdAndDelete(book[0]._id);
-    }
-
-    return res.json({
-      success: true,
-      message: "remove cart data",
-    });
+    successResponce('Remove cart data..',200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,401,res)
   }
 };
 
+exports.removeBookQuntityInCart = async (req,res) => {
+  try {
+    const { bookId , quntity } = req.body
+  
+    const bookid = new mongoose.Types.ObjectId(bookId)
+  
+    const cartData = await CART.aggregate([
+      { $match : { $and : [ { userId : req.user._id }, {bookId:bookid} ] }  }
+    ])
+  
+    if(quntity > cartData[0].quntity){
+      throw 'invalid quntity input..'
+    }
+  
+    const result = cartData.map((book) => {
+      book.quntity = book.quntity - quntity
+    })
+  
+    if(cartData[0].quntity == 0){
+      await CART.findOneAndDelete({ userId:req.user._id })
+    }else{
+      await CART.findOneAndUpdate({ userId : req.user._id } , {
+        quntity : cartData[0].quntity
+      })
+    }
+  
+    successResponce('Book quantity updated..',200,res)
+  } catch (error) {
+    errorResponse(error,401,res)
+  }
+}
+
 exports.updateProfile = async (req, res) => {
   try {
-    const { fullname , email  } = req.body;
+    const { fullname, email } = req.body;
     const image = req.file.filename;
 
     if (req.user.image) {
@@ -609,47 +493,34 @@ exports.updateProfile = async (req, res) => {
       image,
     });
 
-    return res.json({
-      success: true,
-      message: "User profile updated successfully...",
-    });
+    successResponce('User profile updated successfully..',200,res)
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error,
-    });
+    errorResponse(error,401,res)
   }
 };
 
-exports.updateUserPassword = async (req,res) => {
+exports.updateUserPassword = async (req, res) => {
   try {
-    const { oldPassword , newPassword } = req.body;
-  
-    const isCorrect = await bcrypt.compare(oldPassword,req.user.password)
-  
-    if(isCorrect){
-      const bcryptPassword = await bcrypt.hash(newPassword,10);
-      const resetPassword = await USER.findByIdAndUpdate(req.user._id , {
-        password:bcryptPassword
-      })
+    const { oldPassword, newPassword } = req.body;
+
+    const isCorrect = await bcrypt.compare(oldPassword, req.user.password);
+
+    if (isCorrect) {
+      const bcryptPassword = await bcrypt.hash(newPassword, 10);
+      const resetPassword = await USER.findByIdAndUpdate(req.user._id, {
+        password: bcryptPassword,
+      });
     }
 
-    if(!isCorrect){
-      const error = new Error('Password wrong..');
-      throw error;
+    if (!isCorrect) {
+      throw "Password wrong.."
     }
-  
-    return res.json({
-      success:true,
-      message:"password updated..."
-    })
+
+    successResponce('Password updated..',200,res)
   } catch (error) {
-    return res.status(401).json({
-      success:false,
-      message:error.message
-    })
+    errorResponse(error,401,res)
   }
-}
+};
 
 exports.viewProfile = async (req, res) => {
   try {
@@ -659,15 +530,9 @@ exports.viewProfile = async (req, res) => {
       image: 1,
     });
 
-    return res.json({
-      success: true,
-      viewUser,
-    });
+    successResponce(viewUser,200,res)
   } catch (error) {
-    return res.status(401).json({
-      success: true,
-      message: error.message,
-    });
+    errorResponse(error,401,res)
   }
 };
 
@@ -675,22 +540,20 @@ exports.makeOrder = async (req, res) => {
   try {
     const cartdata = await CART.aggregate([
       { $match: { userId: req.user._id } },
-      { $unset:['__v', '_id' , 'userId'] }
+      { $unset: ["__v", "_id", "userId"] },
     ]);
-
-    if (cartdata.length == 0) {
-      const error = new Error("Cart is empty...");
-      throw error;
-    }
 
     const order = await ORDER.create({
       about_book: cartdata,
       userId: req.user._id,
-    });
+    })
 
     const detail = await ORDER.aggregate([
-      { $match: { userId: req.user._id } },
-      { $match: { paymentStatus: "Pending" } },
+      {
+        $match: {
+          $and: [{ userId: req.user._id }, { paymentStatus: "Pending" }],
+        },
+      },
       {
         $lookup: {
           from: "books",
@@ -783,8 +646,7 @@ exports.makeOrder = async (req, res) => {
     const result = number - quntity;
 
     if (number < quntity) {
-      const error = new Error("not valid..");
-      throw error;
+      throw 'not valid..'
     }
 
     const status = result > 0 ? "Available" : "Unavailable";
@@ -798,135 +660,121 @@ exports.makeOrder = async (req, res) => {
       const rem = await CART.findByIdAndDelete(data._id);
     });
 
-    return res.json({
-      success: true,
-      message: "Order place successfully...",
-      detail,
-    });
+    successResponce(detail,200,res)
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,401,res)
   }
 };
 
 exports.viewOrderDetail = async (req, res) => {
   try {
-    const data = await ORDER.aggregate([
+    const orders = await ORDER.aggregate([
       { $match: { userId: req.user._id } },
     ]).project({
       _id: 0,
       __v: 0,
+      createdAt: 0,
+      updatedAt: 0,
     });
 
     let totalPrice = 0;
-    for (let i = 0; i < data.length; i++) {
-      if (data[i].paymentStatus == "Pending") {
-        for (let j = 0; j < data[i].about_book.length; j++) {
-          const id = data[i].about_book[j].bookId;
+    for (let i = 0; i < orders.length; i++) {
+      if (orders[i].paymentStatus == "Pending") {
+        for (let j = 0; j < orders[i].about_book.length; j++) {
+          const id = orders[i].about_book[j].bookId;
 
           const book = await BOOK.findById(id);
 
           const price = book.price;
-          const p = parseInt(money) * data[i].about_book[j].quntity;
+          const p = parseInt(price) * orders[i].about_book[j].quntity;
 
           totalPrice += p;
         }
       }
     }
-    return res.json({
-      success: true,
-      data,
-      message: "Data found successfully...",
-      payment: `${totalPrice}$`,
-    });
+    successResponce({orders , totalPrice},200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,401,res)
   }
 };
 
 exports.ratingBooks = async (req, res) => {
   try {
     const user = req.user;
-    const { book , rating , review } = req.body;
- 
-    const userOrderModel = await ORDER.findOne({ userId: user._id });
+    var { book, rating, review } = req.body;
+    const bookid = new mongoose.Types.ObjectId(book);
 
-    const findBook = await RATING.aggregate([
-      { $match: { $expr: { $eq: ["$userId", { $toObjectId: user._id }] } } },
-      { $match: { $expr: { $eq: ["$bookId", { $toObjectId: book }] } } },
+    const userOrderModel = await ORDER.aggregate([
+      {$match:{"about_book.bookId":bookid}}
+    ]);
+   
+    const books = await RATING.aggregate([
+      {
+        $match: {
+          $and: [
+            { $expr: { $eq: ["$userId", { $toObjectId: user._id }] } },
+            { $expr: { $eq: ["$bookId", { $toObjectId: book }] } },
+          ],
+        },
+      },
     ]);
 
-    if (findBook.length < 0) {
-      const error = new Error("You only give one rate of each book...");
-      throw error;
+    if (books.length > 0) {
+      throw "You only give one rate of each book..."
     }
-
-    for (let i = 0; i < userOrderModel.about_book.length; i++) {
-      if (book == userOrderModel.about_book[i].bookId) {
-        try {
-          const ratingBook = await RATING.create({
-            rating,
-            review,
-            bookId: book,
-            userId: user._id,
-          });
-        } catch (error) {
-          console.log(error);
+    
+      for (let i = 0; i < userOrderModel[0].about_book.length; i++) {
+        if (book == userOrderModel[0].about_book[i].bookId) {
+          try {
+            const ratingBook = await RATING.create({
+              rating,
+              review,
+              bookId: book,
+              userId: user._id,
+            });
+          } catch (error) {
+            console.log(error);
+          }
         }
       }
-    }
-    return res.json({
-      success: true,
-      message: "Give book rating or review...",
-    });
+    
+    successResponce("Give book rating or review...",200,res)
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,400,res)
   }
 };
 
 exports.updateratingsByUser = async (req, res) => {
   try {
-    const user = req.user;
-
-    const { book , rating , review } = req.body; 
+    const { book, rating, review } = req.body;
     const rate = parseInt(rating);
 
-    const findBook = await RATING.aggregate([
-      { $match: { $expr: { $eq: ["$userId", { $toObjectId: user._id }] } } },
-      { $match: { $expr: { $eq: ["$bookId", { $toObjectId: book }] } } },
+    const books = await RATING.aggregate([
+      {
+        $match: { $and : [
+          { $expr: { $eq: ["$userId", { $toObjectId: req.user._id }] } },
+          { $expr: { $eq: ["$bookId", { $toObjectId: book }] } },
+        ],
+      }
+      },
     ]);
 
-    const updateRating = await RATING.findOneAndUpdate(
-      { bookId: findBook[0].bookId },
+    await RATING.findOneAndUpdate(
+      { bookId: books[0].bookId },
       {
-        rating:rate,
+        rating: rate,
         review,
       }
     );
 
-    return res.json({
-      success: true,
-      messsage: "Book Ratings and review updated ..",
-    });
+    successResponce('Book ratings and review updated..',200,res)
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,400,res)
   }
 };
 
 exports.viewratingByBook = async (req, res) => {
   try {
-    const user = req.user;
     const book = req.body.bookId;
 
     const page = req.query.page ? req.query.page : 1;
@@ -960,26 +808,20 @@ exports.viewratingByBook = async (req, res) => {
       .skip(record)
       .limit(3);
 
-    return res.json({
-      success: true,
-      message: "Here are all rating all books which you enterd...",
-      bookData,
-    });
+    successResponce(bookData,200,res)
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,400,res)
   }
 };
 
 exports.payment = async (req, res) => {
   try {
-    const user = req.user;
     const orderId = req.body.orderId;
 
     const orderDetail = await ORDER.aggregate([
-      { $match: { $expr: { $eq: ["$userId", { $toObjectId: user._id }] } } },
+      {
+        $match: { $expr: { $eq: ["$userId", { $toObjectId: req.user._id }] } },
+      },
     ]);
 
     const findOrder = await ORDER.findById(orderId);
@@ -993,8 +835,7 @@ exports.payment = async (req, res) => {
         const book = await BOOK.findById(id);
 
         const price = book.price;
-        const money = price.split("$")[0];
-        const p = parseInt(money) * findOrder.about_book[i].quntity;
+        const p = parseInt(price) * findOrder.about_book[i].quntity;
 
         totalPrice += p;
       }
@@ -1002,7 +843,7 @@ exports.payment = async (req, res) => {
       totalPrice = totalPrice ? totalPrice : 0;
 
       const payment = await PAYMENT.create({
-        userId: user._id,
+        userId: req.user._id,
         orderId: findOrder._id,
         totalPrice: `${totalPrice}$`,
       });
@@ -1011,14 +852,8 @@ exports.payment = async (req, res) => {
         paymentStatus: "Done",
       });
     }
-    return res.json({
-      success: true,
-      message: "USER done payment successfully...",
-    });
+    successResponce('Payment done..',200,res)
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    errorResponse(error,400,res)
   }
 };

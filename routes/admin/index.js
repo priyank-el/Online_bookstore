@@ -4,11 +4,15 @@ const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const bcrypt = require('bcrypt')
 
+const validator = require('../../validators/middleware')
+const validation = require('../../validators/rulesRoutes/adminValidation/adminRules')
+
+// const { regiser , BookGenre , book , genreStatus , updateBook } = require('../../validators/rulesRoutes/adminValidation/adminRules')
+
 const { registerAdmin, loginAdmin, createBook, findAllBooks, findBookById, updateBookById, deleteBookById, getaAllUsers, createBookGenre, getAllOrders, getAllPaymentList, bookGenreStatus, getAllGenres } = require('../../controllers/adminController')
 const ADMIN = require('../../models/adminSchema')
 
 const adminAuth = require('../../middleware/adminAuth')
-const validators = require('../../utils/validaterequest')
 
 // ====================================== PASSPORT LOCAL STRATEGY ===========================================
 passport.serializeUser(function (user, done) {
@@ -46,18 +50,19 @@ passport.use(new LocalStrategy({
 router.use(passport.initialize())
 router.use(passport.session())
 
+const valid = require('../../utils/validaterequest')
 
-router.post('/register', validators('adminRegister') ,registerAdmin)
+router.post('/register', validation.registerValidation ,registerAdmin)
 router.post('/login', passport.authenticate('local'), loginAdmin)
 
 // ========================================= BOOKS API ========================================= //
-router.post('/create-book', adminAuth , validators('createBook') ,createBook)
-router.post('/genre', adminAuth , validators('createBookGenre'), createBookGenre)
+router.post('/create-book', adminAuth ,validation.createBookValidation , createBook)
+router.post('/genre', adminAuth ,validation.createBookGenre, createBookGenre)
 router.get('/find-all-books', adminAuth ,findAllBooks)
 router.get('/find-book/:id', adminAuth ,findBookById)
-router.put('/update-book/:id', adminAuth , validators('updateBook') , updateBookById)
+router.put('/update-book/:id', adminAuth , updateBookById)
 router.delete('/delete-book/:id', adminAuth ,deleteBookById)
-router.post('/genre-status', adminAuth , validators('updateGenreStatus') , bookGenreStatus)
+router.post('/genre-status', adminAuth ,validation.updateBookGenreStatus, bookGenreStatus)
 
 // ========================================= USERS API ========================================= //
 router.get('/all-users', adminAuth ,getaAllUsers)

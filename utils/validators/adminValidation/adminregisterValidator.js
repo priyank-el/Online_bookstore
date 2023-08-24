@@ -1,5 +1,9 @@
 const Joi = require('joi')
 
+const isExist = (req , res ,next ) => {
+    console.log(req.body);
+} 
+
 const adminregisterValidator = Joi.object({
     email:Joi.string()
     .required()
@@ -12,7 +16,7 @@ const adminregisterValidator = Joi.object({
     .messages({
         'password.string':'password must required..',
         'password.required':'password is not optinal..'
-    }),
+    })
 })
 
 module.exports = adminregisterValidator

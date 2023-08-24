@@ -4,6 +4,7 @@ const express = require('express')
 const session = require('express-session')
 var cookieParser = require('cookie-parser')
 const multer = require('multer')
+const chalk = require('chalk')
 
 const app = express()
 
@@ -33,8 +34,10 @@ app.use(session({
     // cookie: { secure: true }
 }))
 
+require('./controllers/cronjobs')
+
 app.use('/api', routes)
 
 app.listen(process.env.PORT, () => {
-    console.log(`Server running on port : ${process.env.PORT}`)
+    console.log(chalk.yellowBright(`Server running on port : ${process.env.PORT}...`))
 })

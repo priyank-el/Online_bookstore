@@ -9,34 +9,26 @@ const ORDER = require("../models/orderSchema")
 const PAYMENT = require("../models/paymentSchema")
 
 const bcrypt = require("bcrypt")
+const { successResponce, errorResponse } = require("../validators/handlers/handler")
 
 exports.registerAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const bcryptedPass = await bcrypt.hash(password, 10);
 
-    const admin = await ADMIN.create({
+    await ADMIN.create({
       email,
       password: bcryptedPass,
     });
 
-    return res.status(201).json({
-      success: true,
-      message: "admin created successfully...",
-    });
+    successResponce('admin registerd..',201,res)
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: "Oops.." + error.message,
-    });
+    errorResponse(error,401,res)
   }
 }
 
 exports.loginAdmin = async (req, res) => {
-  return res.json({
-    success: true,
-    message: "Admin login successfully...",
-  });
+  successResponce('admin logged in..',200,res)
 }
 // ======================================== Books API =============================================
 
@@ -44,18 +36,11 @@ exports.createBookGenre = async (req, res) => {
   try {
     const genre = req.body.genre
 
-    const createGenre = await GENRE.create({ genre })
+    await GENRE.create({ genre })
 
-    return res.json({
-      success: true,
-      message: "Genre created successfully...",
-    })
+    successResponce('genre created..',200,res)
   } catch (error) {
-    console.log(error);
-    return res.status(error.status).json({
-      success: false,
-      message: "Oops.." + error.error.message,
-    })
+    errorResponse(error.error.message,error.status,res)
   }
 }
 
@@ -86,15 +71,9 @@ exports.createBook = async (req, res) => {
       })
     }
 
-    return res.status(201).json({
-      success: true,
-      message: "Book Created successfully...",
-    })
+    successResponce('new book added..')
   } catch (error) {
-    return res.status(error.status).json({
-      success: false,
-      message: "Oops.." + error.error.message,
-    })
+    errorResponse(error.error.message,error.status,res)
   }
 }
 
@@ -121,16 +100,9 @@ exports.findAllBooks = async (req, res) => {
       .limit(3)
       .project({ createdAt: 0, updatedAt: 0, __v: 0 })
 
-    return res.status(200).json({
-      success: true,
-      message: "All books found...",
-      book,
-    })
+    successResponce(book,200,res)
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Oops.." + error.message,
-    })
+    errorResponse(error.message,401,res)
   }
 }
 
@@ -140,16 +112,9 @@ exports.findBookById = async (req, res) => {
 
     const book = await BOOK.findById(id)
 
-    return res.status(200).json({
-      success: true,
-      message: "Book found...",
-      book,
-    })
+    successResponce(book,200,res)
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Oops.." + error.message,
-    })
+    errorResponse(error.message,401,res)
   }
 }
 
@@ -159,7 +124,7 @@ exports.updateBookById = async (req, res) => {
     const { title, author, genre, price, numbersOfBooks } = req.body
     const status = numbersOfBooks > 0 ? "Available" : "Unavailable"
 
-    const book = await BOOK.findByIdAndUpdate(id, {
+    await BOOK.findByIdAndUpdate(id, {
       title,
       author,
       genre,
@@ -168,15 +133,9 @@ exports.updateBookById = async (req, res) => {
       status,
     })
 
-    return res.json({
-      success: true,
-      message: "book Updated successfully...",
-    });
+    successResponce('book updated..',200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: "Oops.." + error.message,
-    })
+    errorResponse(error.message,401,res)
   }
 }
 
@@ -184,17 +143,11 @@ exports.deleteBookById = async (req, res) => {
   try {
     const id = req.params.id
 
-    const book = await BOOK.findByIdAndRemove(id)
+    await BOOK.findByIdAndRemove(id)
 
-    return res.json({
-      success: true,
-      message: "book Deleted successfully...",
-    });
+    successResponce('book deleted..',200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: "Oops.." + error.message,
-    });
+    errorResponse(error.message,401,res)
   }
 }
 
@@ -207,15 +160,9 @@ exports.bookGenreStatus = async (req, res) => {
       { status }
     )
 
-    return res.json({
-      success: true,
-      message: "Book genre status changed...",
-    })
+    successResponce('book genre status changed..',200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      messsage: "Oops.." + error.message,
-    })
+    errorResponse(error.message,401,res)
   }
 }
 
@@ -248,16 +195,9 @@ exports.getaAllUsers = async (req, res) => {
         __v: 0,
       })
 
-    return res.json({
-      success: true,
-      messsage: "All users found...",
-      allUsers,
-    });
+    successResponce({users:allUsers,msg:'All users found..'},200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: "Oops.." + error.message,
-    })
+    errorResponse(error.message,401,res)
   }
 }
 
@@ -274,15 +214,9 @@ exports.getAllOrders = async (req, res) => {
       .limit(2)
       .project({ createdAt: 0, updatedAt: 0, __v: 0 })
 
-    return res.json({
-      success: true,
-      data: ordersList,
-    })
+    successResponce(ordersList,200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message,
-    })
+    errorResponse(error,401,res)
   }
 }
 
@@ -321,14 +255,8 @@ exports.getAllPaymentList = async (req, res) => {
         "user.__v": 0,
       })
 
-    return res.json({
-      success: true,
-      list: paymentList,
-    })
+    successResponce(paymentList,200,res)
   } catch (error) {
-    return res.json({
-      success: false,
-      message: "Some error occurs.." + error.message,
-    })
+    errorResponse(error.message,401,res)
   }
 }

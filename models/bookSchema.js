@@ -13,7 +13,7 @@ const bookSchema = new mongoose
             get: (image) => image ? `http://localhost:4000/images/${image}` : null
         },
         price: {
-            type: String
+            type: Number
         },
         numbersOfBooks: {
             type: Number
@@ -31,17 +31,17 @@ const bookSchema = new mongoose
         { timestamps: true })
 
 
-bookSchema.pre('save', async function(next) {
-    const title = this.title;
-    const isBook = await BOOK.findOne({ title })
-    if(isBook){
-        const error = new Error('Same name Book already exist...');
-        const status = 403;
-        next({error , status});
-    }else{
-        next();
-    }
-})
+// bookSchema.pre('save', async function(next) {
+//     const title = this.title;
+//     const isBook = await BOOK.findOne({ title })
+//     if(isBook){
+//         const error = new Error('Same name Book already exist...');
+//         const status = 403;
+//         next({error , status});
+//     }else{
+//         next();
+//     }
+// })
 
 const BOOK = mongoose.model('BOOK', bookSchema)
 module.exports = BOOK

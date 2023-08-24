@@ -8,7 +8,8 @@ const notificationSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: 'USERS'
     }
-})
+},
+{timestamps:true})
 
 const NOTIFY = mongoose.model('NOTIFY', notificationSchema)
 module.exports = NOTIFY

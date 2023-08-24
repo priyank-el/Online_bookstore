@@ -1,3 +1,4 @@
+const ADMIN = require("../models/adminSchema");
 const validators = require("./validators/index");
 
 module.exports = (validator) => async (req, res, next) => {
@@ -8,6 +9,25 @@ module.exports = (validator) => async (req, res, next) => {
         //TODO: validateAsync is use for validation process
         const validated = await validators[validator].validateAsync(req.body);
         req.body = validated;
+
+        if(validator == 'adminRegister'){
+          try {
+            const email = req.body.email;
+            const isExist = await ADMIN.findOne({email})
+        
+            if(isExist){
+              throw Error('This email is already exist..')
+            }
+    
+            next()
+          } catch (error) {
+            return res.json({
+              success : false , 
+              message : error.message
+            })
+          }
+        }
+
         next();
       } catch (error) {
         console.log(error);
