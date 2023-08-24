@@ -1,7 +1,5 @@
 
 const Validator = require('validatorjs')
-const USER = require('../models/userSchema')
-const ADMIN = require('../models/adminSchema')
 const BOOK = require('../models/bookSchema')
 const GENRE = require('../models/bookGenreSchema')
 
