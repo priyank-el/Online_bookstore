@@ -16,10 +16,10 @@ after getting zip file you simpli add this project in your system.
 
 ### included modules
 ---
-![alt tag](https://www.vectorlogo.zone/logos/nodejs/nodejs-icon.svg)
+![alt tag](https://www.vectorlogo.zone/logos/javascript/javascript-horizontal.svg)
 
 ![alt tag](https://www.vectorlogo.zone/logos/aliexpress/aliexpress-ar21.svg)
 
-![alt tag](https://www.vectorlogo.zone/logos/mongodb/mongodb-ar21.svg)
+![alt tag](https://www.vectorlogo.zone/logos/nodejs/nodejs-ar21.svg)
 
-![alt tag](https://www.shutterstock.com/image-vector/mongoose-coffee-logo-design-vector-1716136327)
+![alt tag](https://www.vectorlogo.zone/logos/getpostman/getpostman-ar21.svg)
