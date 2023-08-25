@@ -7,8 +7,8 @@ const GENRE = require("../models/bookGenreSchema");
 const ORDER = require("../models/orderSchema");
 const RATING = require("../models/ratingSchema");
 const PAYMENT = require("../models/paymentSchema");
-// const {createClient} = require('redis')
-// const client = createClient()
+const {createClient} = require('redis')
+const client = createClient()
 
 const bcrypt = require("bcrypt");
 const fs = require("fs");
@@ -120,10 +120,10 @@ exports.userLogin = async (req, res) => {
       throw "Token not found..."
     }
 
-    // res.cookie("JwtToken", jwtToken);                          => Working with cookies..
+    // res.cookie("JwtToken", jwtToken);            => Working with cookies..
     
-    // await client.connect()
-    await client.set('token',jwtToken)
+    const isConnect = await client.connect()
+    const data = await client.set('token',jwtToken)
 
     successResponce("user login done.." , 200 , res)
   } catch (error) {
@@ -133,7 +133,9 @@ exports.userLogin = async (req, res) => {
 
 exports.logout = async (req,res) => {
 try {
-    res.clearCookie("JwtToken")
+    // res.clearCookie("JwtToken")             // clear cookie in token 
+    const isValid = await client.connect()
+    const data = await client.del('token')
   
     successResponce('user logout..',200,res)
 } catch (error) {

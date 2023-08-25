@@ -15,6 +15,7 @@ router.put('/update', jwtAuth, userAuth,updateProfile)
 router.put('/reset-password', jwtAuth, userAuth, validation.resetPassword,updateUserPassword)
 router.get('/profile', jwtAuth, userAuth, viewProfile)
 router.delete('/delete',jwtAuth,userAuth,deleteUser)
+// router.post('/logout',userAuth,logout)
 router.post('/logout',jwtAuth,userAuth,logout)
 
 router.get('/all-books', jwtAuth , userAuth , findAllAvailableBooks)
