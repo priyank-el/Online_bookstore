@@ -1,3 +1,4 @@
+
 const USER = require("../models/userSchema");
 const BOOK = require("../models/bookSchema");
 const CART = require("../models/cartSchema");
@@ -6,6 +7,8 @@ const GENRE = require("../models/bookGenreSchema");
 const ORDER = require("../models/orderSchema");
 const RATING = require("../models/ratingSchema");
 const PAYMENT = require("../models/paymentSchema");
+// const {createClient} = require('redis')
+// const client = createClient()
 
 const bcrypt = require("bcrypt");
 const fs = require("fs");
@@ -14,7 +17,8 @@ const otpGenerator = require("otp-generator");
 var jwt = require("jsonwebtoken");
 const { default: mongoose } = require("mongoose");
 
-const {errorResponse , successResponce} =require('../validators/handlers/handler')
+const {errorResponse , successResponce} =require('../validators/handlers/handler');
+const { required } = require("joi");
 
 const TokenGenerator = require("token-generator")({
   salt: "your secret ingredient for this magic recipe",
@@ -65,9 +69,9 @@ exports.createUser = async (req, res) => {
       console.log(error);
     }
 
-    successResponce({token:token , success:'User registered..'},200,res)
+    successResponce({token:token , success:'User registered..'},201,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 
@@ -116,11 +120,14 @@ exports.userLogin = async (req, res) => {
       throw "Token not found..."
     }
 
-    res.cookie("JwtToken", jwtToken);
+    // res.cookie("JwtToken", jwtToken);                          => Working with cookies..
     
+    // await client.connect()
+    await client.set('token',jwtToken)
+
     successResponce("user login done.." , 200 , res)
   } catch (error) {
-    errorResponse(error , 401 , res)
+    errorResponse(error , 400 , res)
   }
 };
 
@@ -163,7 +170,7 @@ exports.findAllRecommandation = async (req, res) => {
 
     successResponce(allRecommandation[0].recommandId , 200 , res)
   } catch (error) {
-    errorResponse(error , 401 , res)
+    errorResponse(error , 400 , res)
   }
 };
 
@@ -178,7 +185,7 @@ exports.getAllGenres = async (req, res) => {
 
     successResponce(allGenre , 200 , res)
   } catch (error) {
-    errorResponse(error , 401 , res)
+    errorResponse(error , 400 , res)
   }
 };
 
@@ -393,7 +400,7 @@ exports.addToCart = async (req, res) => {
 
     successResponce("Cart creeated successfully...",200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 
@@ -434,7 +441,7 @@ exports.getCartDetailByLoginUser = async (req, res) => {
 
     successResponce(cartDetail,200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 
@@ -446,7 +453,7 @@ exports.removeToCart = async (req, res) => {
 
     successResponce('Remove cart data..',200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 
@@ -478,7 +485,7 @@ exports.removeBookQuntityInCart = async (req,res) => {
   
     successResponce('Book quantity updated..',200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 }
 
@@ -505,7 +512,7 @@ exports.updateProfile = async (req, res) => {
 
     successResponce('User profile updated successfully..',200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 
@@ -528,7 +535,7 @@ exports.updateUserPassword = async (req, res) => {
 
     successResponce('Password updated..',200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 
@@ -542,7 +549,7 @@ exports.viewProfile = async (req, res) => {
 
     successResponce(viewUser,200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 
@@ -682,7 +689,7 @@ exports.makeOrder = async (req, res) => {
 
     successResponce(detail,200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 
@@ -714,7 +721,7 @@ exports.viewOrderDetail = async (req, res) => {
     }
     successResponce({orders , totalPrice},200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 };
 

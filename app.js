@@ -1,5 +1,8 @@
 require('dotenv').config();
 require('./config/db')
+const {connection} = require('./config/redis')
+connection()
+
 const express = require('express')
 const session = require('express-session')
 var cookieParser = require('cookie-parser')

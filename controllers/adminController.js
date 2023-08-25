@@ -38,7 +38,7 @@ exports.createBookGenre = async (req, res) => {
 
     await GENRE.create({ genre })
 
-    successResponce('genre created..',200,res)
+    successResponce('genre created..',201,res)
   } catch (error) {
     errorResponse(error.error.message,error.status,res)
   }
@@ -102,7 +102,7 @@ exports.findAllBooks = async (req, res) => {
 
     successResponce(book,200,res)
   } catch (error) {
-    errorResponse(error.message,401,res)
+    errorResponse(error.message,400,res)
   }
 }
 
@@ -114,7 +114,7 @@ exports.findBookById = async (req, res) => {
 
     successResponce(book,200,res)
   } catch (error) {
-    errorResponse(error.message,401,res)
+    errorResponse(error.message,400,res)
   }
 }
 
@@ -135,7 +135,7 @@ exports.updateBookById = async (req, res) => {
 
     successResponce('book updated..',200,res)
   } catch (error) {
-    errorResponse(error.message,401,res)
+    errorResponse(error.message,400,res)
   }
 }
 
@@ -147,7 +147,7 @@ exports.deleteBookById = async (req, res) => {
 
     successResponce('book deleted..',200,res)
   } catch (error) {
-    errorResponse(error.message,401,res)
+    errorResponse(error.message,400,res)
   }
 }
 
@@ -162,7 +162,7 @@ exports.bookGenreStatus = async (req, res) => {
 
     successResponce('book genre status changed..',200,res)
   } catch (error) {
-    errorResponse(error.message,401,res)
+    errorResponse(error.message,400,res)
   }
 }
 
@@ -197,7 +197,7 @@ exports.getaAllUsers = async (req, res) => {
 
     successResponce({users:allUsers,msg:'All users found..'},200,res)
   } catch (error) {
-    errorResponse(error.message,401,res)
+    errorResponse(error.message,400,res)
   }
 }
 
@@ -216,7 +216,7 @@ exports.getAllOrders = async (req, res) => {
 
     successResponce(ordersList,200,res)
   } catch (error) {
-    errorResponse(error,401,res)
+    errorResponse(error,400,res)
   }
 }
 
@@ -257,6 +257,6 @@ exports.getAllPaymentList = async (req, res) => {
 
     successResponce(paymentList,200,res)
   } catch (error) {
-    errorResponse(error.message,401,res)
+    errorResponse(error.message,400,res)
   }
 }

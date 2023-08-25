@@ -29,7 +29,9 @@
     "otp-generator": "^4.0.1",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
-    "token-generator": "^1.0.0",
-    "validatorjs": "^3.22.1"
+    "redis": "^4.6.8",
+    "redis-commander": "^0.8.0",
+    "tokaen-generator": "^1.0.0",
+    "vlidatorjs": "^3.22.1"
   }
 }
